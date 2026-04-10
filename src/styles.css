@@ -115,9 +115,6 @@ header {
 .platform-mac .header-brand {
   -webkit-app-region: no-drag;
 }
-.platform-mac .header-brand {
-  margin-left: 48px;
-}
 
 .header-brand {
   display: flex;
@@ -458,26 +455,25 @@ main {
 .copy-btn.copied .icon-copy { display: none; }
 .copy-btn.copied .icon-check { display: block; color: var(--success); }
 
-/* ── Clear Button (in header) ── */
+/* ── Clear Button (icon in header) ── */
 #clear-btn {
   background: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 13px;
-  font-weight: 500;
+  border: none;
   cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
   color: var(--text-secondary);
   transition: all 0.15s ease;
-  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 #clear-btn:hover:not(:disabled) {
-  border-color: var(--error);
   color: var(--error);
-  background: rgba(255, 59, 48, 0.04);
+  background: rgba(255, 59, 48, 0.06);
 }
 #clear-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
