@@ -1,12 +1,17 @@
 use digest::Digest;
 use md5::Md5;
+use memmap2::Mmap;
 use serde::Serialize;
 use sha1::Sha1;
 use sha2::{Sha256, Sha512};
 use std::fs::{self, File};
-use std::io::Read;
-use std::time::{Duration, Instant};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
+use std::time::Duration;
 use tauri::{command, AppHandle, Emitter};
+
+/// Logical chunk size for progress granularity when iterating the mmap.
+const CHUNK_SIZE: usize = 2 * 1024 * 1024;
 
 #[derive(Clone, Serialize)]
 struct HashProgress {
@@ -27,6 +32,46 @@ struct FileMetadata {
     name: String,
 }
 
+/// Run a digest algorithm over `data` in chunks, atomically incrementing
+/// `processed` after each chunk so the caller can report progress.
+fn hash_chunk<D: Digest>(data: &[u8], processed: &AtomicU64) -> String {
+    let mut hasher = D::new();
+    for chunk in data.chunks(CHUNK_SIZE) {
+        hasher.update(chunk);
+        processed.fetch_add(chunk.len() as u64, Ordering::Relaxed);
+    }
+    let result = hasher.finalize();
+    let mut hex = String::with_capacity(result.len() * 2);
+    for &b in result.iter() {
+        hex.push(HEX_LUT[(b >> 4) as usize] as char);
+        hex.push(HEX_LUT[(b & 0x0f) as usize] as char);
+    }
+    hex
+}
+
+static HEX_LUT: &[u8; 16] = b"0123456789abcdef";
+
+/// Compute hashes for an empty file without spawning threads or mmap.
+fn hash_empty(file_id: &str, algorithms: &[String]) -> Vec<HashResult> {
+    algorithms
+        .iter()
+        .filter_map(|algo| {
+            let (name, hash) = match algo.as_str() {
+                "md5" => ("MD5", format!("{:x}", Md5::digest(b""))),
+                "sha1" => ("SHA-1", format!("{:x}", Sha1::digest(b""))),
+                "sha256" => ("SHA-256", format!("{:x}", Sha256::digest(b""))),
+                "sha512" => ("SHA-512", format!("{:x}", Sha512::digest(b""))),
+                _ => return None,
+            };
+            Some(HashResult {
+                file_id: file_id.into(),
+                algorithm: name.into(),
+                hash,
+            })
+        })
+        .collect()
+}
+
 #[command]
 async fn compute_hashes(
     app: AppHandle,
@@ -35,121 +80,99 @@ async fn compute_hashes(
     algorithms: Vec<String>,
 ) -> Result<Vec<HashResult>, String> {
     tokio::task::spawn_blocking(move || {
-        let mut file =
+        let file =
             File::open(&file_path).map_err(|e| format!("Failed to open file: {}", e))?;
         let file_size = file
             .metadata()
             .map_err(|e| format!("Failed to read metadata: {}", e))?
             .len();
 
-        let mut md5_h = if algorithms.contains(&"md5".into()) {
-            Some(Md5::new())
-        } else {
-            None
-        };
-        let mut sha1_h = if algorithms.contains(&"sha1".into()) {
-            Some(Sha1::new())
-        } else {
-            None
-        };
-        let mut sha256_h = if algorithms.contains(&"sha256".into()) {
-            Some(Sha256::new())
-        } else {
-            None
-        };
-        let mut sha512_h = if algorithms.contains(&"sha512".into()) {
-            Some(Sha512::new())
-        } else {
-            None
-        };
-
-        let mut buffer = vec![0u8; 8 * 1024 * 1024]; // 8 MB buffer for fast I/O
-        let mut processed: u64 = 0;
-        let mut last_pct: i32 = -1;
-        let mut last_emit = Instant::now();
-        let emit_interval = Duration::from_millis(50);
-
-        loop {
-            let n = file
-                .read(&mut buffer)
-                .map_err(|e| format!("Read error: {}", e))?;
-            if n == 0 {
-                break;
-            }
-
-            let chunk = &buffer[..n];
-            if let Some(ref mut h) = md5_h {
-                h.update(chunk);
-            }
-            if let Some(ref mut h) = sha1_h {
-                h.update(chunk);
-            }
-            if let Some(ref mut h) = sha256_h {
-                h.update(chunk);
-            }
-            if let Some(ref mut h) = sha512_h {
-                h.update(chunk);
-            }
-
-            processed += n as u64;
-            let pct = if file_size > 0 {
-                (processed as f64 / file_size as f64 * 100.0) as i32
-            } else {
-                100
-            };
-
-            let now = Instant::now();
-            if pct > last_pct && now.duration_since(last_emit) >= emit_interval {
-                last_pct = pct;
-                last_emit = now;
-                let _ = app.emit(
-                    "hash-progress",
-                    HashProgress {
-                        file_id: file_id.clone(),
-                        progress: (processed as f64) / (file_size.max(1) as f64),
-                    },
-                );
-            }
+        if file_size == 0 {
+            let _ = app.emit(
+                "hash-progress",
+                HashProgress { file_id: file_id.clone(), progress: 1.0 },
+            );
+            return Ok(hash_empty(&file_id, &algorithms));
         }
 
-        // Emit final 100% progress
-        let _ = app.emit(
-            "hash-progress",
-            HashProgress {
-                file_id: file_id.clone(),
-                progress: 1.0,
-            },
+        // SAFETY: The file is opened read-only and we do not modify it while
+        // mapped.  External modification is a theoretical UB risk accepted by
+        // every mmap-based tool (sha256sum, etc.).
+        let mmap = Arc::new(
+            unsafe { Mmap::map(&file) }.map_err(|e| format!("mmap error: {}", e))?,
         );
 
-        let mut results = Vec::new();
-        if let Some(h) = md5_h {
-            results.push(HashResult {
-                file_id: file_id.clone(),
-                algorithm: "MD5".into(),
-                hash: format!("{:x}", h.finalize()),
-            });
+        // Tell the kernel we will read sequentially: enables aggressive
+        // prefetch and early page-out of already-read pages.
+        #[cfg(unix)]
+        mmap.advise(memmap2::Advice::Sequential).ok();
+
+        // total_work = file_size * number_of_algorithms so that each
+        // algorithm's byte-processing contributes equally to the bar.
+        let num_algos = algorithms.len() as u64;
+        let total_work = file_size.saturating_mul(num_algos);
+        let processed = Arc::new(AtomicU64::new(0));
+
+        // --- spawn one OS thread per algorithm (max 4) ---
+        let mut handles: Vec<(&str, std::thread::JoinHandle<String>)> =
+            Vec::with_capacity(algorithms.len());
+
+        for algo in &algorithms {
+            let m = Arc::clone(&mmap);
+            let p = Arc::clone(&processed);
+            let (name, handle) = match algo.as_str() {
+                "md5" => (
+                    "MD5",
+                    std::thread::spawn(move || hash_chunk::<Md5>(&m, &p)),
+                ),
+                "sha1" => (
+                    "SHA-1",
+                    std::thread::spawn(move || hash_chunk::<Sha1>(&m, &p)),
+                ),
+                "sha256" => (
+                    "SHA-256",
+                    std::thread::spawn(move || hash_chunk::<Sha256>(&m, &p)),
+                ),
+                "sha512" => (
+                    "SHA-512",
+                    std::thread::spawn(move || hash_chunk::<Sha512>(&m, &p)),
+                ),
+                _ => continue,
+            };
+            handles.push((name, handle));
         }
-        if let Some(h) = sha1_h {
-            results.push(HashResult {
-                file_id: file_id.clone(),
-                algorithm: "SHA-1".into(),
-                hash: format!("{:x}", h.finalize()),
-            });
+
+        // --- progress reporter runs on *this* (blocking) thread ---
+        let emit_interval = Duration::from_millis(50);
+        loop {
+            std::thread::sleep(emit_interval);
+            let cur = processed.load(Ordering::Relaxed);
+            let _ = app.emit(
+                "hash-progress",
+                HashProgress {
+                    file_id: file_id.clone(),
+                    progress: (cur as f64 / total_work as f64).min(1.0),
+                },
+            );
+            if handles.iter().all(|(_, h)| h.is_finished()) {
+                break;
+            }
         }
-        if let Some(h) = sha256_h {
-            results.push(HashResult {
+
+        let _ = app.emit(
+            "hash-progress",
+            HashProgress { file_id: file_id.clone(), progress: 1.0 },
+        );
+
+        // --- collect results in the original algorithm order ---
+        let results = handles
+            .into_iter()
+            .map(|(name, h)| HashResult {
                 file_id: file_id.clone(),
-                algorithm: "SHA-256".into(),
-                hash: format!("{:x}", h.finalize()),
-            });
-        }
-        if let Some(h) = sha512_h {
-            results.push(HashResult {
-                file_id: file_id.clone(),
-                algorithm: "SHA-512".into(),
-                hash: format!("{:x}", h.finalize()),
-            });
-        }
+                algorithm: name.into(),
+                hash: h.join().unwrap_or_default(),
+            })
+            .collect();
 
         Ok(results)
     })
