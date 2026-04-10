@@ -166,6 +166,7 @@ header h1 {
   background: var(--accent-light);
 }
 
+#collapse-all-btn,
 #theme-btn,
 #settings-btn {
   background: none;
@@ -179,11 +180,21 @@ header h1 {
   align-items: center;
   justify-content: center;
 }
+#collapse-all-btn:hover:not(:disabled),
 #theme-btn:hover,
 #settings-btn:hover {
   background: var(--accent-light);
   color: var(--accent);
 }
+#collapse-all-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* collapse-all icon toggle: default shows collapse (↓↓), .all-collapsed shows expand (↑↑) */
+#collapse-all-btn .icon-expand { display: none; }
+#collapse-all-btn.all-collapsed .icon-collapse { display: none; }
+#collapse-all-btn.all-collapsed .icon-expand { display: block; }
 
 /* sun/moon toggle: light mode → show moon; dark mode → show sun */
 [data-theme="light"] .icon-sun { display: none; }

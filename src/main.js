@@ -278,12 +278,23 @@ async function init() {
     });
   }
 
+  // collapse/expand all
+  document.getElementById("collapse-all-btn").addEventListener("click", () => {
+    const btn = document.getElementById("collapse-all-btn");
+    if (btn.disabled) return;
+    const cards = document.querySelectorAll(".file-card");
+    const allCollapsed = Array.from(cards).every((c) => c.classList.contains("collapsed"));
+    cards.forEach((c) => c.classList.toggle("collapsed", !allCollapsed));
+    btn.classList.toggle("all-collapsed", !allCollapsed);
+  });
+
   document.getElementById("clear-btn").addEventListener("click", () => {
     if (document.getElementById("clear-btn").disabled) return;
     state.files.clear();
     document.getElementById("file-list").innerHTML = "";
     document.getElementById("app").classList.remove("has-files");
     document.getElementById("clear-btn").disabled = true;
+    document.getElementById("collapse-all-btn").disabled = true;
   });
 }
 
@@ -300,9 +311,20 @@ async function handleFiles(paths) {
 
   document.getElementById("app").classList.add("has-files");
   document.getElementById("clear-btn").disabled = false;
+  document.getElementById("collapse-all-btn").disabled = false;
 
   const skipped = [];
   for (const filePath of paths) {
+    // Remove existing card for the same file path
+    for (const [oldId, oldFile] of state.files) {
+      if (oldFile.path === filePath) {
+        const oldCard = document.querySelector(`[data-file-id="${oldId}"]`);
+        if (oldCard) oldCard.remove();
+        state.files.delete(oldId);
+        break;
+      }
+    }
+
     const fileId =
       Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
@@ -326,6 +348,7 @@ async function handleFiles(paths) {
   if (state.files.size === 0) {
     document.getElementById("app").classList.remove("has-files");
     document.getElementById("clear-btn").disabled = true;
+    document.getElementById("collapse-all-btn").disabled = true;
   }
 }
 
@@ -372,6 +395,7 @@ function createFileCard(fileId, meta, filePath) {
     if (state.files.size === 0) {
       document.getElementById("app").classList.remove("has-files");
       document.getElementById("clear-btn").disabled = true;
+      document.getElementById("collapse-all-btn").disabled = true;
     }
   });
 
