@@ -275,9 +275,8 @@ main {
   left: 16px;
   top: 18px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
-  opacity: 0.5;
   font-variant-numeric: tabular-nums;
 }
 .file-card.visible { opacity: 1; transform: translateY(0); }
