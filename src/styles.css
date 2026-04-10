@@ -102,10 +102,10 @@ header {
   padding: 14px 24px;
   background: var(--card-bg);
   border-bottom: 1px solid var(--border);
-  cursor: grab;
+  cursor: default;
 }
 header button {
-  cursor: pointer;
+  cursor: default;
 }
 
 /* macOS overlay title bar: extra top padding to clear traffic lights */
