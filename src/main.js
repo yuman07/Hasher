@@ -279,9 +279,11 @@ async function init() {
   }
 
   document.getElementById("clear-btn").addEventListener("click", () => {
+    if (document.getElementById("clear-btn").disabled) return;
     state.files.clear();
     document.getElementById("file-list").innerHTML = "";
     document.getElementById("app").classList.remove("has-files");
+    document.getElementById("clear-btn").disabled = true;
   });
 }
 
@@ -297,6 +299,7 @@ async function handleFiles(paths) {
   }
 
   document.getElementById("app").classList.add("has-files");
+  document.getElementById("clear-btn").disabled = false;
 
   const skipped = [];
   for (const filePath of paths) {
@@ -322,6 +325,7 @@ async function handleFiles(paths) {
 
   if (state.files.size === 0) {
     document.getElementById("app").classList.remove("has-files");
+    document.getElementById("clear-btn").disabled = true;
   }
 }
 
@@ -354,6 +358,7 @@ function createFileCard(fileId, meta, filePath) {
     card.addEventListener("animationend", () => card.remove());
     if (state.files.size === 0) {
       document.getElementById("app").classList.remove("has-files");
+      document.getElementById("clear-btn").disabled = true;
     }
   });
 
