@@ -102,10 +102,10 @@ header {
   padding: 14px 24px;
   background: var(--card-bg);
   border-bottom: 1px solid var(--border);
-  -webkit-app-region: drag;
+  cursor: grab;
 }
 header button {
-  -webkit-app-region: no-drag;
+  cursor: pointer;
 }
 
 /* macOS overlay title bar: extra top padding to clear traffic lights */

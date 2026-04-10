@@ -199,6 +199,12 @@ async function init() {
   applyTranslations();
   applyHashCase();
 
+  // Window dragging: mousedown on header (but not on buttons) starts drag
+  document.querySelector("header").addEventListener("mousedown", (e) => {
+    if (e.target.closest("button")) return;
+    getCurrentWindow().startDragging().catch(() => {});
+  });
+
   // The <head> inline script added .no-transition to prevent flash.
   // Remove it after the first frame so future toggles can animate.
   requestAnimationFrame(() => {
