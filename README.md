@@ -60,6 +60,24 @@ All user preferences are saved to `localStorage` and restored on restart:
 | Build | Vite 6 |
 | Package Manager | [Devbox](https://www.jetify.com/devbox) (Node.js) + Cargo (Rust) |
 
+## Installation
+
+### macOS
+
+1. Download `Hasher_x.x.x_macos_aarch64.zip` from [Releases](https://github.com/yuman07/Hasher/releases)
+2. Unzip and drag `Hasher.app` to Applications
+3. **First launch**: macOS will show a security warning because the app is not signed with an Apple Developer certificate. To open it:
+   - **Option A**: Right-click `Hasher.app` → **Open** → click **Open** in the dialog
+   - **Option B**: Run in Terminal:
+     ```bash
+     xattr -cr /Applications/Hasher.app
+     ```
+
+### Windows
+
+1. Download `Hasher_x.x.x_x64-setup.exe` or `.msi` from [Releases](https://github.com/yuman07/Hasher/releases)
+2. Run the installer
+
 ## Getting Started
 
 ### Prerequisites

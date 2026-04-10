@@ -60,6 +60,24 @@
 | 构建 | Vite 6 |
 | 包管理 | [Devbox](https://www.jetify.com/devbox) (Node.js) + Cargo (Rust) |
 
+## 安装
+
+### macOS
+
+1. 从 [Releases](https://github.com/yuman07/Hasher/releases) 下载 `Hasher_x.x.x_macos_aarch64.zip`
+2. 解压后将 `Hasher.app` 拖入"应用程序"文件夹
+3. **首次启动**：由于应用未经 Apple 开发者证书签名，macOS 会弹出安全提示。解决方法：
+   - **方法 A**：右键点击 `Hasher.app` → **打开** → 在弹窗中点击 **打开**
+   - **方法 B**：在终端中执行：
+     ```bash
+     xattr -cr /Applications/Hasher.app
+     ```
+
+### Windows
+
+1. 从 [Releases](https://github.com/yuman07/Hasher/releases) 下载 `Hasher_x.x.x_x64-setup.exe` 或 `.msi`
+2. 运行安装程序
+
 ## 快速开始
 
 ### 前置条件
