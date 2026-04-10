@@ -218,6 +218,9 @@ async fn compute_hashes(
 #[command]
 fn get_file_metadata(file_path: String) -> Result<FileMetadata, String> {
     let meta = fs::metadata(&file_path).map_err(|e| e.to_string())?;
+    if meta.is_dir() {
+        return Err("Not a file".into());
+    }
     let name = std::path::Path::new(&file_path)
         .file_name()
         .map(|n| n.to_string_lossy().to_string())

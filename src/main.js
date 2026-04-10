@@ -292,12 +292,18 @@ async function handleFiles(paths) {
     try {
       meta = await invoke("get_file_metadata", { filePath });
     } catch {
-      meta = { name: filePath.split(/[/\\]/).pop(), size: 0 };
+      // Directory or inaccessible path — skip silently
+      continue;
     }
 
     state.files.set(fileId, { ...meta, path: filePath });
     createFileCard(fileId, meta, filePath);
     computeHashes(fileId, filePath, algorithms);
+  }
+
+  // If nothing was added, revert the has-files state
+  if (state.files.size === 0) {
+    document.getElementById("app").classList.remove("has-files");
   }
 }
 
