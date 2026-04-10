@@ -102,16 +102,15 @@ header {
   padding: 14px 24px;
   background: var(--card-bg);
   border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag;
+}
+header button {
+  -webkit-app-region: no-drag;
 }
 
-/* macOS overlay title bar: header IS the title bar, so it needs
-   drag behavior and padding to clear the native traffic lights. */
+/* macOS overlay title bar: extra top padding to clear traffic lights */
 .platform-mac header {
-  -webkit-app-region: drag;
   padding-top: 42px;
-}
-.platform-mac header button {
-  -webkit-app-region: no-drag;
 }
 
 .header-brand {
