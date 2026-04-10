@@ -110,9 +110,7 @@ header {
   -webkit-app-region: drag;
   padding-top: 42px;
 }
-.platform-mac header button,
-.platform-mac header h1,
-.platform-mac .header-brand {
+.platform-mac header button {
   -webkit-app-region: no-drag;
 }
 
