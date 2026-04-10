@@ -16,6 +16,7 @@ const messages = {
     copyHash: "Copy hash",
     progressDone: "Done",
     toggleTheme: "Toggle theme",
+    skippedDirs: "Folders cannot be hashed and were skipped: ",
   },
   zh: {
     dropText: "\u5c06\u6587\u4ef6\u62d6\u653e\u5230\u6b64\u5904\u8ba1\u7b97\u54c8\u5e0c\u503c",
@@ -28,6 +29,7 @@ const messages = {
     copyHash: "\u590d\u5236\u54c8\u5e0c\u503c",
     progressDone: "\u5b8c\u6210",
     toggleTheme: "\u5207\u6362\u4e3b\u9898",
+    skippedDirs: "\u6587\u4ef6\u5939\u65e0\u6cd5\u8ba1\u7b97\u54c8\u5e0c\uff0c\u5df2\u8df3\u8fc7\uff1a",
   },
 };
 
@@ -110,6 +112,18 @@ function escapeHtml(str) {
   const d = document.createElement("div");
   d.textContent = str;
   return d.innerHTML;
+}
+
+function showToast(msg) {
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.textContent = msg;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add("visible"));
+  setTimeout(() => {
+    el.classList.remove("visible");
+    el.addEventListener("transitionend", () => el.remove());
+  }, 3000);
 }
 
 function formatSize(bytes) {
@@ -284,6 +298,7 @@ async function handleFiles(paths) {
 
   document.getElementById("app").classList.add("has-files");
 
+  const skipped = [];
   for (const filePath of paths) {
     const fileId =
       Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -292,7 +307,7 @@ async function handleFiles(paths) {
     try {
       meta = await invoke("get_file_metadata", { filePath });
     } catch {
-      // Directory or inaccessible path — skip silently
+      skipped.push(filePath.split(/[/\\]/).pop());
       continue;
     }
 
@@ -301,7 +316,10 @@ async function handleFiles(paths) {
     computeHashes(fileId, filePath, algorithms);
   }
 
-  // If nothing was added, revert the has-files state
+  if (skipped.length > 0) {
+    showToast(t("skippedDirs") + skipped.join(", "));
+  }
+
   if (state.files.size === 0) {
     document.getElementById("app").classList.remove("has-files");
   }
