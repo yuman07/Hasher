@@ -102,6 +102,12 @@ function applyHashCase() {
   document.getElementById("case-btn").textContent = state.upperCase ? "AA" : "aa";
 }
 
+function syncCollapseAllBtn() {
+  const cards = document.querySelectorAll(".file-card");
+  const allCollapsed = cards.length > 0 && Array.from(cards).every((c) => c.classList.contains("collapsed"));
+  document.getElementById("collapse-all-btn").classList.toggle("all-collapsed", allCollapsed);
+}
+
 function updateSettingsCloseBtn() {
   const hasAny = Object.values(state.settings).some((v) => v);
   document.getElementById("settings-close").disabled = !hasAny;
@@ -285,7 +291,7 @@ async function init() {
     const cards = document.querySelectorAll(".file-card");
     const allCollapsed = Array.from(cards).every((c) => c.classList.contains("collapsed"));
     cards.forEach((c) => c.classList.toggle("collapsed", !allCollapsed));
-    btn.classList.toggle("all-collapsed", !allCollapsed);
+    syncCollapseAllBtn();
   });
 
   document.getElementById("clear-btn").addEventListener("click", () => {
@@ -386,6 +392,7 @@ function createFileCard(fileId, meta, filePath) {
 
   card.querySelector(".collapse-btn").addEventListener("click", () => {
     card.classList.toggle("collapsed");
+    syncCollapseAllBtn();
   });
 
   card.querySelector(".remove-btn").addEventListener("click", () => {
