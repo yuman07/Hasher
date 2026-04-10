@@ -277,6 +277,7 @@ main {
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 12px;
+  transition: margin-bottom 0.3s ease;
 }
 .file-card.collapsed .file-header {
   margin-bottom: 0;
@@ -313,13 +314,19 @@ main {
 }
 
 .card-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.3s ease;
+}
+.card-body-inner {
   overflow: hidden;
-  max-height: 500px;
-  transition: max-height 0.3s ease, opacity 0.25s ease;
   opacity: 1;
+  transition: opacity 0.2s ease;
 }
 .file-card.collapsed .card-body {
-  max-height: 0;
+  grid-template-rows: 0fr;
+}
+.file-card.collapsed .card-body-inner {
   opacity: 0;
 }
 .file-info {

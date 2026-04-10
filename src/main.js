@@ -398,11 +398,13 @@ function createFileCard(fileId, meta, filePath) {
       </div>
     </div>
     <div class="card-body">
-    <div class="progress-container">
-      <div class="progress-bar"><div class="progress-fill"></div></div>
-      <span class="progress-text">0%</span>
-    </div>
-    <div class="hash-results"></div>
+      <div class="card-body-inner">
+        <div class="progress-container">
+          <div class="progress-bar"><div class="progress-fill"></div></div>
+          <span class="progress-text">0%</span>
+        </div>
+        <div class="hash-results"></div>
+      </div>
     </div>
   `;
 
