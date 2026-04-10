@@ -235,6 +235,17 @@ async function init() {
     }
   });
 
+  // Files opened via macOS Dock drop (app already running)
+  await listen("open-files", (event) => {
+    handleFiles(event.payload);
+  });
+
+  // Files opened via macOS Dock drop (cold launch — arrived before frontend)
+  const pending = await invoke("take_pending_files");
+  if (pending.length > 0) {
+    handleFiles(pending);
+  }
+
   await listen("hash-progress", (event) => {
     const { file_id, progress } = event.payload;
     const card = document.querySelector(`[data-file-id="${file_id}"]`);

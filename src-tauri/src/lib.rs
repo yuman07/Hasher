@@ -6,9 +6,9 @@ use sha1::Sha1;
 use sha2::{Sha256, Sha512};
 use std::fs::{self, File};
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use tauri::{command, AppHandle, Emitter};
+use tauri::{command, AppHandle, Emitter, Manager, State};
 
 /// Logical chunk size when iterating mmap — controls progress granularity.
 const CHUNK_SIZE: usize = 2 * 1024 * 1024;
@@ -231,9 +231,44 @@ fn get_file_metadata(file_path: String) -> Result<FileMetadata, String> {
     })
 }
 
+/// Files opened via macOS Dock drop before the frontend is ready.
+struct PendingFiles(Mutex<Vec<String>>);
+
+#[command]
+fn take_pending_files(state: State<PendingFiles>) -> Vec<String> {
+    state.0.lock().unwrap().drain(..).collect()
+}
+
 pub fn run() {
-    tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![compute_hashes, get_file_metadata])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    let app = tauri::Builder::default()
+        .manage(PendingFiles(Mutex::new(Vec::new())))
+        .invoke_handler(tauri::generate_handler![
+            compute_hashes,
+            get_file_metadata,
+            take_pending_files
+        ])
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+
+    app.run(|app_handle, event| {
+        if let tauri::RunEvent::Opened { urls } = event {
+            let paths: Vec<String> = urls
+                .iter()
+                .filter_map(|u| u.to_file_path().ok())
+                .map(|p| p.to_string_lossy().to_string())
+                .collect();
+
+            if paths.is_empty() {
+                return;
+            }
+
+            // Try emitting to frontend (works if already loaded)
+            let _ = app_handle.emit("open-files", &paths);
+
+            // Also buffer for frontend init (cold launch from Dock drop)
+            if let Some(state) = app_handle.try_state::<PendingFiles>() {
+                state.0.lock().unwrap().extend(paths);
+            }
+        }
+    });
 }
