@@ -252,6 +252,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  counter-reset: file-index;
 }
 
 /* ── File Card ── */
@@ -259,11 +260,25 @@ main {
   background: var(--card-bg);
   border-radius: var(--radius);
   padding: 16px 20px;
+  padding-left: 48px;
   box-shadow: var(--shadow);
+  position: relative;
+  counter-increment: file-index;
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
               transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.file-card::before {
+  content: counter(file-index);
+  position: absolute;
+  left: 16px;
+  top: 18px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  font-variant-numeric: tabular-nums;
 }
 .file-card.visible { opacity: 1; transform: translateY(0); }
 .file-card.removing { animation: fadeOut 0.25s ease forwards; }
