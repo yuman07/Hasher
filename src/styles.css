@@ -492,7 +492,11 @@ main {
   cursor: pointer;
   transition: opacity 0.2s;
 }
-#settings-close:hover { opacity: 0.88; }
+#settings-close:hover:not(:disabled) { opacity: 0.88; }
+#settings-close:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
 
 /* ── Error ── */
 .file-error {
@@ -505,6 +509,14 @@ main {
   user-select: text;
   cursor: text;
   word-break: break-all;
+}
+
+/* ── Theme transition suppression ── */
+.no-transition,
+.no-transition *,
+.no-transition *::before,
+.no-transition *::after {
+  transition: none !important;
 }
 
 /* ── Scrollbar ── */

@@ -81,7 +81,17 @@ function applyTranslations() {
 }
 
 function applyTheme() {
+  // Suppress all CSS transitions during theme swap to prevent flicker
+  document.documentElement.classList.add("no-transition");
   document.documentElement.setAttribute("data-theme", state.theme);
+  // Force a reflow so styles apply instantly, then re-enable transitions
+  document.documentElement.offsetHeight; // eslint-disable-line no-unused-expressions
+  document.documentElement.classList.remove("no-transition");
+}
+
+function updateSettingsCloseBtn() {
+  const hasAny = Object.values(state.settings).some((v) => v);
+  document.getElementById("settings-close").disabled = !hasAny;
 }
 
 // ── helpers ───────────────────────────────────────────────────────────
@@ -202,13 +212,15 @@ async function init() {
 
   // settings modal
   document.getElementById("settings-btn").addEventListener("click", () => {
+    updateSettingsCloseBtn();
     document.getElementById("settings-overlay").classList.remove("hidden");
   });
   document.getElementById("settings-overlay").addEventListener("click", (e) => {
-    if (e.target === e.currentTarget)
+    if (e.target === e.currentTarget && !document.getElementById("settings-close").disabled)
       document.getElementById("settings-overlay").classList.add("hidden");
   });
   document.getElementById("settings-close").addEventListener("click", () => {
+    if (document.getElementById("settings-close").disabled) return;
     document.getElementById("settings-overlay").classList.add("hidden");
   });
 
@@ -218,6 +230,7 @@ async function init() {
     toggle.addEventListener("change", () => {
       state.settings[algo] = toggle.checked;
       saveSettings();
+      updateSettingsCloseBtn();
     });
   }
 
@@ -336,7 +349,9 @@ async function computeHashes(fileId, filePath, algorithms) {
 
     resultsDiv.querySelectorAll(".copy-btn").forEach((btn, i) => {
       btn.addEventListener("click", () => {
-        navigator.clipboard.writeText(results[i].hash);
+        navigator.clipboard.writeText(
+          `${results[i].algorithm}: ${results[i].hash}`
+        );
         btn.classList.add("copied");
         setTimeout(() => btn.classList.remove("copied"), 1500);
       });
