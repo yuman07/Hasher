@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
-// --- i18n ---
+// ── i18n ──────────────────────────────────────────────────────────────
 const messages = {
   en: {
     dropText: "Drop files here to calculate hash",
@@ -14,6 +14,7 @@ const messages = {
     remove: "Remove",
     copyHash: "Copy hash",
     progressDone: "Done",
+    toggleTheme: "Toggle theme",
   },
   zh: {
     dropText: "\u5c06\u6587\u4ef6\u62d6\u653e\u5230\u6b64\u5904\u8ba1\u7b97\u54c8\u5e0c\u503c",
@@ -25,14 +26,16 @@ const messages = {
     remove: "\u79fb\u9664",
     copyHash: "\u590d\u5236\u54c8\u5e0c\u503c",
     progressDone: "\u5b8c\u6210",
+    toggleTheme: "\u5207\u6362\u4e3b\u9898",
   },
 };
 
-// --- State ---
+// ── state ─────────────────────────────────────────────────────────────
 const state = {
   files: new Map(),
   settings: loadSettings(),
   lang: loadLanguage(),
+  theme: loadTheme(),
 };
 
 function loadSettings() {
@@ -44,7 +47,6 @@ function loadSettings() {
     return defaults;
   }
 }
-
 function saveSettings() {
   localStorage.setItem("hasher-settings", JSON.stringify(state.settings));
 }
@@ -53,6 +55,14 @@ function loadLanguage() {
   const saved = localStorage.getItem("hasher-lang");
   if (saved === "en" || saved === "zh") return saved;
   return navigator.language.startsWith("zh") ? "zh" : "en";
+}
+
+function loadTheme() {
+  const saved = localStorage.getItem("hasher-theme");
+  if (saved === "light" || saved === "dark") return saved;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 function t(key) {
@@ -70,13 +80,11 @@ function applyTranslations() {
     state.lang === "en" ? "EN" : "\u4e2d\u6587";
 }
 
-function toggleLanguage() {
-  state.lang = state.lang === "en" ? "zh" : "en";
-  localStorage.setItem("hasher-lang", state.lang);
-  applyTranslations();
+function applyTheme() {
+  document.documentElement.setAttribute("data-theme", state.theme);
 }
 
-// --- Helpers ---
+// ── helpers ───────────────────────────────────────────────────────────
 function escapeHtml(str) {
   const d = document.createElement("div");
   d.textContent = str;
@@ -90,9 +98,70 @@ function formatSize(bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0) + " " + units[i];
 }
 
-// --- Initialization ---
+// ── file-type icons ───────────────────────────────────────────────────
+const EXT_SETS = {
+  image: ["jpg","jpeg","png","gif","svg","webp","bmp","ico","tiff","tif","heic","heif","avif","raw"],
+  video: ["mp4","avi","mkv","mov","wmv","flv","webm","m4v","mpg","mpeg","3gp"],
+  audio: ["mp3","wav","flac","aac","ogg","wma","m4a","opus","ape","aiff"],
+  archive: ["zip","rar","7z","tar","gz","bz2","xz","zst","dmg","iso","pkg","deb","rpm","cab","lz4"],
+  code: ["js","ts","jsx","tsx","py","rs","go","java","c","cpp","h","hpp","html","css","scss","json","xml","yaml","yml","toml","sh","rb","php","swift","kt","lua","sql","r","m","vue","svelte"],
+  doc: ["pdf","doc","docx","xls","xlsx","ppt","pptx","txt","rtf","csv","md","odt","ods","odp","pages","numbers","key","epub"],
+  exe: ["exe","msi","app","bat","cmd","com","appimage","apk","ipa","deb","rpm"],
+};
+
+function getFileIconSvg(filename) {
+  const ext = (filename.lastIndexOf(".") > 0
+    ? filename.slice(filename.lastIndexOf(".") + 1)
+    : ""
+  ).toLowerCase();
+
+  for (const [type, exts] of Object.entries(EXT_SETS)) {
+    if (exts.includes(ext)) return ICONS[type];
+  }
+  return ICONS.default;
+}
+
+const ICONS = {
+  image: `<svg class="file-icon fi-image" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+  </svg>`,
+  video: `<svg class="file-icon fi-video" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+  </svg>`,
+  audio: `<svg class="file-icon fi-audio" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+  </svg>`,
+  archive: `<svg class="file-icon fi-archive" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+  </svg>`,
+  code: `<svg class="file-icon fi-code" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+  </svg>`,
+  doc: `<svg class="file-icon fi-doc" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+  </svg>`,
+  exe: `<svg class="file-icon fi-exe" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+  </svg>`,
+  default: `<svg class="file-icon fi-default" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+  </svg>`,
+};
+
+// ── initialisation ────────────────────────────────────────────────────
 async function init() {
+  applyTheme();
   applyTranslations();
+
+  // follow system theme when no explicit preference
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", (e) => {
+      if (!localStorage.getItem("hasher-theme")) {
+        state.theme = e.matches ? "dark" : "light";
+        applyTheme();
+      }
+    });
 
   const appWindow = getCurrentWebviewWindow();
 
@@ -117,8 +186,21 @@ async function init() {
     card.querySelector(".progress-text").textContent = pct + "%";
   });
 
-  document.getElementById("lang-btn").addEventListener("click", toggleLanguage);
+  // language
+  document.getElementById("lang-btn").addEventListener("click", () => {
+    state.lang = state.lang === "en" ? "zh" : "en";
+    localStorage.setItem("hasher-lang", state.lang);
+    applyTranslations();
+  });
 
+  // theme
+  document.getElementById("theme-btn").addEventListener("click", () => {
+    state.theme = state.theme === "light" ? "dark" : "light";
+    localStorage.setItem("hasher-theme", state.theme);
+    applyTheme();
+  });
+
+  // settings modal
   document.getElementById("settings-btn").addEventListener("click", () => {
     document.getElementById("settings-overlay").classList.remove("hidden");
   });
@@ -146,7 +228,7 @@ async function init() {
   });
 }
 
-// --- File handling ---
+// ── file handling ─────────────────────────────────────────────────────
 async function handleFiles(paths) {
   const algorithms = Object.entries(state.settings)
     .filter(([, v]) => v)
@@ -171,25 +253,23 @@ async function handleFiles(paths) {
     }
 
     state.files.set(fileId, { ...meta, path: filePath });
-    createFileCard(fileId, meta);
+    createFileCard(fileId, meta, filePath);
     computeHashes(fileId, filePath, algorithms);
   }
 }
 
-function createFileCard(fileId, meta) {
+function createFileCard(fileId, meta, filePath) {
   const card = document.createElement("div");
   card.className = "file-card";
   card.dataset.fileId = fileId;
   card.innerHTML = `
     <div class="file-header">
       <div class="file-info">
-        <svg class="file-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-        </svg>
+        ${getFileIconSvg(meta.name)}
         <div class="file-meta">
           <span class="file-name">${escapeHtml(meta.name)}</span>
           <span class="file-size">${formatSize(meta.size)}</span>
+          <span class="file-path" title="${escapeHtml(filePath)}">${escapeHtml(filePath)}</span>
         </div>
       </div>
       <button class="remove-btn" data-i18n-title="remove" title="${t("remove")}">&times;</button>
