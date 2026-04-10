@@ -2,10 +2,37 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
+// --- i18n ---
+const messages = {
+  en: {
+    dropText: "Drop files here to calculate hash",
+    dropSubtext: "Supports multiple files at once",
+    clearAll: "Clear All",
+    hashAlgorithms: "Hash Algorithms",
+    done: "Done",
+    settings: "Settings",
+    remove: "Remove",
+    copyHash: "Copy hash",
+    progressDone: "Done",
+  },
+  zh: {
+    dropText: "\u5c06\u6587\u4ef6\u62d6\u653e\u5230\u6b64\u5904\u8ba1\u7b97\u54c8\u5e0c\u503c",
+    dropSubtext: "\u652f\u6301\u540c\u65f6\u5904\u7406\u591a\u4e2a\u6587\u4ef6",
+    clearAll: "\u5168\u90e8\u6e05\u9664",
+    hashAlgorithms: "\u54c8\u5e0c\u7b97\u6cd5",
+    done: "\u5b8c\u6210",
+    settings: "\u8bbe\u7f6e",
+    remove: "\u79fb\u9664",
+    copyHash: "\u590d\u5236\u54c8\u5e0c\u503c",
+    progressDone: "\u5b8c\u6210",
+  },
+};
+
 // --- State ---
 const state = {
   files: new Map(),
   settings: loadSettings(),
+  lang: loadLanguage(),
 };
 
 function loadSettings() {
@@ -20,6 +47,33 @@ function loadSettings() {
 
 function saveSettings() {
   localStorage.setItem("hasher-settings", JSON.stringify(state.settings));
+}
+
+function loadLanguage() {
+  const saved = localStorage.getItem("hasher-lang");
+  if (saved === "en" || saved === "zh") return saved;
+  return navigator.language.startsWith("zh") ? "zh" : "en";
+}
+
+function t(key) {
+  return (messages[state.lang] && messages[state.lang][key]) || messages.en[key] || key;
+}
+
+function applyTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    el.title = t(el.dataset.i18nTitle);
+  });
+  document.getElementById("lang-btn").textContent =
+    state.lang === "en" ? "EN" : "\u4e2d\u6587";
+}
+
+function toggleLanguage() {
+  state.lang = state.lang === "en" ? "zh" : "en";
+  localStorage.setItem("hasher-lang", state.lang);
+  applyTranslations();
 }
 
 // --- Helpers ---
@@ -38,9 +92,10 @@ function formatSize(bytes) {
 
 // --- Initialization ---
 async function init() {
+  applyTranslations();
+
   const appWindow = getCurrentWebviewWindow();
 
-  // Tauri drag & drop events
   await appWindow.onDragDropEvent((event) => {
     const dropZone = document.getElementById("drop-zone");
     if (event.payload.type === "enter" || event.payload.type === "over") {
@@ -53,7 +108,6 @@ async function init() {
     }
   });
 
-  // Progress events from Rust backend
   await listen("hash-progress", (event) => {
     const { file_id, progress } = event.payload;
     const card = document.querySelector(`[data-file-id="${file_id}"]`);
@@ -63,7 +117,8 @@ async function init() {
     card.querySelector(".progress-text").textContent = pct + "%";
   });
 
-  // Settings
+  document.getElementById("lang-btn").addEventListener("click", toggleLanguage);
+
   document.getElementById("settings-btn").addEventListener("click", () => {
     document.getElementById("settings-overlay").classList.remove("hidden");
   });
@@ -75,7 +130,6 @@ async function init() {
     document.getElementById("settings-overlay").classList.add("hidden");
   });
 
-  // Toggle switches
   for (const algo of ["md5", "sha1", "sha256", "sha512"]) {
     const toggle = document.getElementById(`toggle-${algo}`);
     toggle.checked = state.settings[algo];
@@ -85,7 +139,6 @@ async function init() {
     });
   }
 
-  // Clear all
   document.getElementById("clear-btn").addEventListener("click", () => {
     state.files.clear();
     document.getElementById("file-list").innerHTML = "";
@@ -110,15 +163,11 @@ async function handleFiles(paths) {
     const fileId =
       Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
-    // Get file metadata from Rust
     let meta;
     try {
-      meta = await invoke("get_file_metadata", { file_path: filePath });
+      meta = await invoke("get_file_metadata", { filePath });
     } catch {
-      meta = {
-        name: filePath.split(/[/\\]/).pop(),
-        size: 0,
-      };
+      meta = { name: filePath.split(/[/\\]/).pop(), size: 0 };
     }
 
     state.files.set(fileId, { ...meta, path: filePath });
@@ -143,7 +192,7 @@ function createFileCard(fileId, meta) {
           <span class="file-size">${formatSize(meta.size)}</span>
         </div>
       </div>
-      <button class="remove-btn" title="Remove">&times;</button>
+      <button class="remove-btn" data-i18n-title="remove" title="${t("remove")}">&times;</button>
     </div>
     <div class="progress-container">
       <div class="progress-bar"><div class="progress-fill"></div></div>
@@ -171,20 +220,19 @@ async function computeHashes(fileId, filePath, algorithms) {
 
   try {
     const results = await invoke("compute_hashes", {
-      file_path: filePath,
-      file_id: fileId,
+      filePath,
+      fileId,
       algorithms,
     });
 
-    // Update progress to complete
     const fill = card.querySelector(".progress-fill");
-    const text = card.querySelector(".progress-text");
+    const progressText = card.querySelector(".progress-text");
     fill.style.width = "100%";
     fill.classList.add("complete");
-    text.textContent = "Done";
+    progressText.textContent = t("progressDone");
+    progressText.dataset.i18n = "progressDone";
     card.querySelector(".progress-container").classList.add("complete");
 
-    // Render hash results
     const resultsDiv = card.querySelector(".hash-results");
     resultsDiv.innerHTML = results
       .map(
@@ -192,7 +240,7 @@ async function computeHashes(fileId, filePath, algorithms) {
       <div class="hash-row">
         <span class="hash-label">${escapeHtml(r.algorithm)}</span>
         <code class="hash-value">${escapeHtml(r.hash)}</code>
-        <button class="copy-btn" title="Copy hash">
+        <button class="copy-btn" data-i18n-title="copyHash" title="${t("copyHash")}">
           <svg class="icon-copy" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
             <rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/>
             <path d="M3 11V3.5A1.5 1.5 0 014.5 2H10" stroke-linecap="round"/>
@@ -206,7 +254,6 @@ async function computeHashes(fileId, filePath, algorithms) {
       )
       .join("");
 
-    // Copy handlers
     resultsDiv.querySelectorAll(".copy-btn").forEach((btn, i) => {
       btn.addEventListener("click", () => {
         navigator.clipboard.writeText(results[i].hash);
