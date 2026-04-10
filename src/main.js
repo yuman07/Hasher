@@ -80,6 +80,7 @@ function applyTranslations() {
   document.querySelectorAll("[data-i18n-title]").forEach((el) => {
     el.title = t(el.dataset.i18nTitle);
   });
+  document.getElementById("lang-btn").classList.toggle("lang-zh", state.lang === "zh");
 }
 
 let _themeSwitchTimer = 0;
