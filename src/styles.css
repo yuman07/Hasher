@@ -141,31 +141,7 @@ header h1 {
 }
 
 #case-btn,
-#lang-btn {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  color: var(--text-secondary);
-  transition: all 0.15s ease;
-  line-height: 1.4;
-  font-family: "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
-}
-#lang-btn {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  min-width: 48px;
-  text-align: center;
-}
-#case-btn:hover,
-#lang-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-light);
-}
-
+#lang-btn,
 #collapse-all-btn,
 #theme-btn,
 #settings-btn {
@@ -180,6 +156,8 @@ header h1 {
   align-items: center;
   justify-content: center;
 }
+#case-btn:hover,
+#lang-btn:hover,
 #collapse-all-btn:hover:not(:disabled),
 #theme-btn:hover,
 #settings-btn:hover {
@@ -191,7 +169,12 @@ header h1 {
   cursor: not-allowed;
 }
 
-/* collapse-all icon toggle: default shows collapse (↓↓), .all-collapsed shows expand (↑↑) */
+/* case icon toggle: default shows lowercase (ab), .upper shows uppercase (AB) */
+#case-btn .icon-upper { display: none; }
+#case-btn.upper .icon-lower { display: none; }
+#case-btn.upper .icon-upper { display: block; }
+
+/* collapse-all icon toggle */
 #collapse-all-btn .icon-expand { display: none; }
 #collapse-all-btn.all-collapsed .icon-collapse { display: none; }
 #collapse-all-btn.all-collapsed .icon-expand { display: block; }

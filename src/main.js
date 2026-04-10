@@ -80,8 +80,6 @@ function applyTranslations() {
   document.querySelectorAll("[data-i18n-title]").forEach((el) => {
     el.title = t(el.dataset.i18nTitle);
   });
-  document.getElementById("lang-btn").textContent =
-    state.lang === "en" ? "EN" : "\u4e2d\u6587";
 }
 
 let _themeSwitchTimer = 0;
@@ -99,7 +97,7 @@ function applyTheme(animate) {
 
 function applyHashCase() {
   document.getElementById("app").classList.toggle("hash-upper", state.upperCase);
-  document.getElementById("case-btn").textContent = state.upperCase ? "AA" : "aa";
+  document.getElementById("case-btn").classList.toggle("upper", state.upperCase);
 }
 
 function syncCollapseAllBtn() {
