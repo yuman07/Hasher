@@ -343,14 +343,27 @@ function createFileCard(fileId, meta, filePath) {
           <span class="file-path" title="${escapeHtml(filePath)}">${escapeHtml(filePath)}</span>
         </div>
       </div>
-      <button class="remove-btn" data-i18n-title="remove" title="${t("remove")}">&times;</button>
+      <div class="card-actions">
+        <button class="collapse-btn" title="Collapse">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 6 8 10 12 6"/>
+          </svg>
+        </button>
+        <button class="remove-btn" data-i18n-title="remove" title="${t("remove")}">&times;</button>
+      </div>
     </div>
+    <div class="card-body">
     <div class="progress-container">
       <div class="progress-bar"><div class="progress-fill"></div></div>
       <span class="progress-text">0%</span>
     </div>
     <div class="hash-results"></div>
+    </div>
   `;
+
+  card.querySelector(".collapse-btn").addEventListener("click", () => {
+    card.classList.toggle("collapsed");
+  });
 
   card.querySelector(".remove-btn").addEventListener("click", () => {
     state.files.delete(fileId);

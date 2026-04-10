@@ -282,6 +282,50 @@ main {
   justify-content: space-between;
   margin-bottom: 12px;
 }
+.file-card.collapsed .file-header {
+  margin-bottom: 0;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.collapse-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.collapse-btn:hover {
+  color: var(--accent);
+  background: var(--accent-light);
+}
+.collapse-btn svg {
+  transition: transform 0.25s ease;
+}
+.file-card.collapsed .collapse-btn svg {
+  transform: rotate(-90deg);
+}
+
+.card-body {
+  overflow: hidden;
+  max-height: 500px;
+  transition: max-height 0.3s ease, opacity 0.25s ease;
+  opacity: 1;
+}
+.file-card.collapsed .card-body {
+  max-height: 0;
+  opacity: 0;
+}
 .file-info {
   display: flex;
   align-items: flex-start;
