@@ -405,7 +405,14 @@ main {
   align-items: center;
   gap: 12px;
   margin-bottom: 4px;
-  transition: margin 0.3s ease;
+  transition: margin 0.3s ease, max-height 0.3s ease, opacity 0.3s ease;
+  max-height: 30px;
+  overflow: hidden;
+}
+.progress-container.hide {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
 }
 .progress-container.complete { margin-bottom: 12px; }
 .progress-container.complete .progress-text { color: var(--success); font-weight: 600; }

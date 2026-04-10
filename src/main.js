@@ -390,13 +390,15 @@ async function computeHashes(fileId, filePath, algorithms) {
       algorithms,
     });
 
-    const fill = card.querySelector(".progress-fill");
-    const progressText = card.querySelector(".progress-text");
+    const progressContainer = card.querySelector(".progress-container");
+    const fill = progressContainer.querySelector(".progress-fill");
+    const progressText = progressContainer.querySelector(".progress-text");
     fill.style.width = "100%";
     fill.classList.add("complete");
     progressText.textContent = t("progressDone");
     progressText.dataset.i18n = "progressDone";
-    card.querySelector(".progress-container").classList.add("complete");
+    progressContainer.classList.add("complete");
+    setTimeout(() => progressContainer.classList.add("hide"), 500);
 
     const resultsDiv = card.querySelector(".hash-results");
     resultsDiv.innerHTML = results
