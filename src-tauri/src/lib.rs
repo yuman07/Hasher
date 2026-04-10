@@ -10,8 +10,14 @@ use std::sync::Arc;
 use std::time::Duration;
 use tauri::{command, AppHandle, Emitter};
 
-/// Logical chunk size for progress granularity when iterating the mmap.
+/// Logical chunk size when iterating mmap — controls progress granularity.
 const CHUNK_SIZE: usize = 2 * 1024 * 1024;
+
+/// Hash threads need < 2 KB of stack; 256 KB is generous headroom while
+/// saving ~1-31 MB vs the platform default (512 KB–8 MB) per thread.
+const HASH_THREAD_STACK: usize = 256 * 1024;
+
+static HEX_LUT: &[u8; 16] = b"0123456789abcdef";
 
 #[derive(Clone, Serialize)]
 struct HashProgress {
@@ -32,26 +38,64 @@ struct FileMetadata {
     name: String,
 }
 
-/// Run a digest algorithm over `data` in chunks, atomically incrementing
-/// `processed` after each chunk so the caller can report progress.
-fn hash_chunk<D: Digest>(data: &[u8], processed: &AtomicU64) -> String {
-    let mut hasher = D::new();
+// ── platform-optimised file open ──────────────────────────────────────
+
+/// Open a file with the best sequential-read hints the OS provides.
+///
+/// * **Windows** – `FILE_FLAG_SEQUENTIAL_SCAN` tells the Cache Manager to
+///   read-ahead aggressively and release pages early, cutting mmap page-fault
+///   cost dramatically.
+/// * **Unix** – plain `open()`; the sequential hint is applied later via
+///   `madvise(MADV_SEQUENTIAL)` on the mapping itself.
+fn open_for_hashing(path: &str) -> Result<File, String> {
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::OpenOptionsExt;
+        const FILE_FLAG_SEQUENTIAL_SCAN: u32 = 0x0800_0000;
+        fs::OpenOptions::new()
+            .read(true)
+            .custom_flags(FILE_FLAG_SEQUENTIAL_SCAN)
+            .open(path)
+            .map_err(|e| format!("Failed to open file: {}", e))
+    }
+
+    #[cfg(not(windows))]
+    {
+        File::open(path).map_err(|e| format!("Failed to open file: {}", e))
+    }
+}
+
+// ── core hash helpers ─────────────────────────────────────────────────
+
+/// Stream a digest over `data` in chunks, bumping an atomic counter after
+/// each so the UI can report progress.  Returns the hex-encoded hash.
+fn hash_region<D: Digest>(data: &[u8], processed: &AtomicU64) -> String {
+    let mut h = D::new();
     for chunk in data.chunks(CHUNK_SIZE) {
-        hasher.update(chunk);
+        h.update(chunk);
         processed.fetch_add(chunk.len() as u64, Ordering::Relaxed);
     }
-    let result = hasher.finalize();
-    let mut hex = String::with_capacity(result.len() * 2);
-    for &b in result.iter() {
+    let digest = h.finalize();
+    let mut hex = String::with_capacity(digest.len() * 2);
+    for &b in digest.iter() {
         hex.push(HEX_LUT[(b >> 4) as usize] as char);
         hex.push(HEX_LUT[(b & 0x0f) as usize] as char);
     }
     hex
 }
 
-static HEX_LUT: &[u8; 16] = b"0123456789abcdef";
+/// Spawn a hash thread with a small stack.
+fn spawn_hasher<D: Digest + Send + 'static>(
+    mmap: Arc<Mmap>,
+    processed: Arc<AtomicU64>,
+) -> Result<std::thread::JoinHandle<String>, String> {
+    std::thread::Builder::new()
+        .stack_size(HASH_THREAD_STACK)
+        .spawn(move || hash_region::<D>(&mmap, &processed))
+        .map_err(|e| format!("Thread creation failed: {}", e))
+}
 
-/// Compute hashes for an empty file without spawning threads or mmap.
+/// Handle 0-byte files without spawning threads or touching mmap.
 fn hash_empty(file_id: &str, algorithms: &[String]) -> Vec<HashResult> {
     algorithms
         .iter()
@@ -72,6 +116,8 @@ fn hash_empty(file_id: &str, algorithms: &[String]) -> Vec<HashResult> {
         .collect()
 }
 
+// ── Tauri commands ────────────────────────────────────────────────────
+
 #[command]
 async fn compute_hashes(
     app: AppHandle,
@@ -80,13 +126,14 @@ async fn compute_hashes(
     algorithms: Vec<String>,
 ) -> Result<Vec<HashResult>, String> {
     tokio::task::spawn_blocking(move || {
-        let file =
-            File::open(&file_path).map_err(|e| format!("Failed to open file: {}", e))?;
+        // ── open with platform-specific sequential-scan hint ──
+        let file = open_for_hashing(&file_path)?;
         let file_size = file
             .metadata()
             .map_err(|e| format!("Failed to read metadata: {}", e))?
             .len();
 
+        // ── fast path for empty files ──
         if file_size == 0 {
             let _ = app.emit(
                 "hash-progress",
@@ -95,25 +142,25 @@ async fn compute_hashes(
             return Ok(hash_empty(&file_id, &algorithms));
         }
 
-        // SAFETY: The file is opened read-only and we do not modify it while
-        // mapped.  External modification is a theoretical UB risk accepted by
-        // every mmap-based tool (sha256sum, etc.).
+        // ── memory-map: zero user-space buffer, OS manages page cache ──
+        // SAFETY: file is opened read-only; external modification is the
+        // standard mmap caveat accepted by every hashing tool.
         let mmap = Arc::new(
             unsafe { Mmap::map(&file) }.map_err(|e| format!("mmap error: {}", e))?,
         );
 
-        // Tell the kernel we will read sequentially: enables aggressive
-        // prefetch and early page-out of already-read pages.
+        // Unix: advise kernel to prefetch ahead and release behind.
+        // (Windows equivalent is FILE_FLAG_SEQUENTIAL_SCAN, set at open.)
         #[cfg(unix)]
         mmap.advise(memmap2::Advice::Sequential).ok();
 
-        // total_work = file_size * number_of_algorithms so that each
-        // algorithm's byte-processing contributes equally to the bar.
+        // total_work = file_size × #algorithms — each algorithm's bytes
+        // processed contributes equally to the progress bar.
         let num_algos = algorithms.len() as u64;
         let total_work = file_size.saturating_mul(num_algos);
         let processed = Arc::new(AtomicU64::new(0));
 
-        // --- spawn one OS thread per algorithm (max 4) ---
+        // ── one OS thread per algorithm (max 4), each with a tiny stack ──
         let mut handles: Vec<(&str, std::thread::JoinHandle<String>)> =
             Vec::with_capacity(algorithms.len());
 
@@ -121,28 +168,16 @@ async fn compute_hashes(
             let m = Arc::clone(&mmap);
             let p = Arc::clone(&processed);
             let (name, handle) = match algo.as_str() {
-                "md5" => (
-                    "MD5",
-                    std::thread::spawn(move || hash_chunk::<Md5>(&m, &p)),
-                ),
-                "sha1" => (
-                    "SHA-1",
-                    std::thread::spawn(move || hash_chunk::<Sha1>(&m, &p)),
-                ),
-                "sha256" => (
-                    "SHA-256",
-                    std::thread::spawn(move || hash_chunk::<Sha256>(&m, &p)),
-                ),
-                "sha512" => (
-                    "SHA-512",
-                    std::thread::spawn(move || hash_chunk::<Sha512>(&m, &p)),
-                ),
+                "md5" => ("MD5", spawn_hasher::<Md5>(m, p)?),
+                "sha1" => ("SHA-1", spawn_hasher::<Sha1>(m, p)?),
+                "sha256" => ("SHA-256", spawn_hasher::<Sha256>(m, p)?),
+                "sha512" => ("SHA-512", spawn_hasher::<Sha512>(m, p)?),
                 _ => continue,
             };
             handles.push((name, handle));
         }
 
-        // --- progress reporter runs on *this* (blocking) thread ---
+        // ── progress reporter runs on *this* blocking thread ──
         let emit_interval = Duration::from_millis(50);
         loop {
             std::thread::sleep(emit_interval);
@@ -164,7 +199,7 @@ async fn compute_hashes(
             HashProgress { file_id: file_id.clone(), progress: 1.0 },
         );
 
-        // --- collect results in the original algorithm order ---
+        // ── collect results in the original algorithm order ──
         let results = handles
             .into_iter()
             .map(|(name, h)| HashResult {
