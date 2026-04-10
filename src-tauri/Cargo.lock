@@ -1236,6 +1236,7 @@ dependencies = [
  "sha2",
  "tauri",
  "tauri-build",
+ "tokio",
 ]
 
 [[package]]
