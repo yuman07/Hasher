@@ -112,8 +112,20 @@ header {
   padding-left: 80px;
 }
 .platform-mac header button,
-.platform-mac header h1 {
+.platform-mac header h1,
+.platform-mac .header-brand {
   -webkit-app-region: no-drag;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-icon {
+  flex-shrink: 0;
+  border-radius: 6px;
 }
 
 header h1 {
@@ -145,6 +157,8 @@ header h1 {
 }
 #lang-btn {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  min-width: 48px;
+  text-align: center;
 }
 #case-btn:hover,
 #lang-btn:hover {
