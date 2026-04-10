@@ -81,9 +81,16 @@ function applyTranslations() {
     state.lang === "en" ? "EN" : "\u4e2d\u6587";
 }
 
-function applyTheme() {
-  document.documentElement.setAttribute("data-theme", state.theme);
-  // Sync native window title bar with the web theme
+let _themeSwitchTimer = 0;
+function applyTheme(animate) {
+  const root = document.documentElement;
+  if (animate) {
+    // Uniform 0.3 s transition on every element via !important class
+    root.classList.add("theme-switching");
+    clearTimeout(_themeSwitchTimer);
+    _themeSwitchTimer = setTimeout(() => root.classList.remove("theme-switching"), 350);
+  }
+  root.setAttribute("data-theme", state.theme);
   getCurrentWindow().setTheme(state.theme).catch(() => {});
 }
 
@@ -158,11 +165,11 @@ const ICONS = {
 
 // ── initialisation ────────────────────────────────────────────────────
 async function init() {
-  applyTheme();
+  applyTheme(false);
   applyTranslations();
 
   // The <head> inline script added .no-transition to prevent flash.
-  // Remove it after the first frame so future toggles animate smoothly.
+  // Remove it after the first frame so future toggles can animate.
   requestAnimationFrame(() => {
     document.documentElement.classList.remove("no-transition");
   });
@@ -173,7 +180,7 @@ async function init() {
     .addEventListener("change", (e) => {
       if (!localStorage.getItem("hasher-theme")) {
         state.theme = e.matches ? "dark" : "light";
-        applyTheme();
+        applyTheme(true);
       }
     });
 
@@ -211,7 +218,7 @@ async function init() {
   document.getElementById("theme-btn").addEventListener("click", () => {
     state.theme = state.theme === "light" ? "dark" : "light";
     localStorage.setItem("hasher-theme", state.theme);
-    applyTheme();
+    applyTheme(true);
   });
 
   // settings modal

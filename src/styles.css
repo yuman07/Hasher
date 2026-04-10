@@ -50,13 +50,30 @@
   --scrollbar-hover: #636366;
 }
 
-/* Theme color transitions — applies to all elements so dark/light
-   toggle animates smoothly.  The .no-transition class (set in <head>
-   and removed after init) suppresses this during the initial paint. */
-*,
-*::before,
-*::after {
-  transition: background-color 0.35s ease, color 0.25s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+/* ── Theme switch animation ──
+   Applied for ~350 ms during a manual toggle via JS.
+   !important overrides every element's own transition so every
+   colour changes at exactly the same speed.  Removed after 350 ms
+   so normal hover/interactive transitions are unaffected. */
+.theme-switching,
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: background-color 0.3s ease,
+              color           0.3s ease,
+              border-color    0.3s ease,
+              box-shadow      0.3s ease,
+              fill            0.3s ease,
+              stroke          0.3s ease !important;
+}
+
+/* Suppress ALL transitions during initial paint (set in <head>,
+   removed after first rAF in JS init). */
+.no-transition,
+.no-transition *,
+.no-transition *::before,
+.no-transition *::after {
+  transition: none !important;
 }
 
 body {
@@ -106,7 +123,7 @@ header h1 {
   font-weight: 600;
   cursor: pointer;
   color: var(--text-secondary);
-  transition: all 0.2s;
+  transition: all 0.15s ease;
   line-height: 1.4;
 }
 #lang-btn:hover {
@@ -123,7 +140,7 @@ header h1 {
   padding: 8px;
   border-radius: 8px;
   color: var(--text-secondary);
-  transition: all 0.2s;
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -214,7 +231,8 @@ main {
   box-shadow: var(--shadow);
   opacity: 0;
   transform: translateY(8px);
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .file-card.visible { opacity: 1; transform: translateY(0); }
 .file-card.removing { animation: fadeOut 0.25s ease forwards; }
@@ -292,7 +310,7 @@ main {
   color: var(--text-secondary);
   padding: 2px 8px;
   border-radius: 6px;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -307,7 +325,7 @@ main {
   align-items: center;
   gap: 12px;
   margin-bottom: 4px;
-  transition: margin 0.3s;
+  transition: margin 0.3s ease;
 }
 .progress-container.complete { margin-bottom: 12px; }
 .progress-container.complete .progress-text { color: var(--success); font-weight: 600; }
@@ -324,7 +342,7 @@ main {
   width: 0%;
   background: linear-gradient(90deg, var(--accent), #5abaff);
   border-radius: 3px;
-  transition: width 0.3s ease, background-color 0.35s ease;
+  transition: width 0.3s ease;
 }
 .progress-fill.complete {
   background: linear-gradient(90deg, #28b74b, var(--success));
@@ -386,7 +404,7 @@ main {
   padding: 4px;
   border-radius: 6px;
   color: var(--text-secondary);
-  transition: all 0.2s;
+  transition: all 0.15s ease;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -409,7 +427,7 @@ main {
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
-  transition: all 0.2s;
+  transition: all 0.15s ease;
   align-self: center;
 }
 #clear-btn:hover {
@@ -431,7 +449,7 @@ main {
   justify-content: center;
   z-index: 100;
   opacity: 1;
-  transition: opacity 0.2s ease, background-color 0.35s ease;
+  transition: opacity 0.2s ease;
 }
 #settings-overlay.hidden { opacity: 0; pointer-events: none; }
 
@@ -442,7 +460,7 @@ main {
   width: 340px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   transform: scale(1);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.35s ease, box-shadow 0.35s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 #settings-overlay.hidden #settings-modal { transform: scale(0.94); }
 
@@ -468,7 +486,7 @@ main {
   background: var(--toggle-bg);
   border-radius: 16px;
   cursor: pointer;
-  transition: background 0.25s;
+  transition: background-color 0.25s ease;
   border: none;
   outline: none;
   flex-shrink: 0;
@@ -499,7 +517,7 @@ main {
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s, background-color 0.35s ease;
+  transition: opacity 0.15s ease;
 }
 #settings-close:hover:not(:disabled) { opacity: 0.88; }
 #settings-close:disabled {
@@ -518,14 +536,6 @@ main {
   user-select: text;
   cursor: text;
   word-break: break-all;
-}
-
-/* ── Theme transition suppression ── */
-.no-transition,
-.no-transition *,
-.no-transition *::before,
-.no-transition *::after {
-  transition: none !important;
 }
 
 /* ── Scrollbar ── */
