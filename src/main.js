@@ -354,7 +354,7 @@ async function handleFiles(paths) {
     try {
       meta = await invoke("get_file_metadata", { filePath });
     } catch {
-      skipped.push(filePath.split(/[/\\]/).pop());
+      skipped.push(filePath.split(/[/\\]/).filter(Boolean).pop() || filePath);
       continue;
     }
 
