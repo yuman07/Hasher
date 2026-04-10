@@ -116,7 +116,13 @@ header button {
 .header-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
+}
+
+.brand-text {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
 }
 
 .app-version {
@@ -124,7 +130,6 @@ header button {
   font-weight: 500;
   color: var(--text-secondary);
   opacity: 0.6;
-  margin-left: -4px;
 }
 
 .app-icon {
