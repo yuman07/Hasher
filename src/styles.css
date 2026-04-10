@@ -104,6 +104,18 @@ header {
   border-bottom: 1px solid var(--border);
 }
 
+/* macOS overlay title bar: header IS the title bar, so it needs
+   drag behavior and padding to clear the native traffic lights. */
+.platform-mac header {
+  -webkit-app-region: drag;
+  padding-top: 42px;
+  padding-left: 80px;
+}
+.platform-mac header button,
+.platform-mac header h1 {
+  -webkit-app-region: no-drag;
+}
+
 header h1 {
   font-size: 18px;
   font-weight: 700;

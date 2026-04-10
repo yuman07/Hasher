@@ -171,6 +171,11 @@ const ICONS = {
 
 // ── initialisation ────────────────────────────────────────────────────
 async function init() {
+  // Detect macOS for overlay title-bar padding
+  if (/Mac/.test(navigator.userAgent)) {
+    document.body.classList.add("platform-mac");
+  }
+
   applyTheme(false);
   applyTranslations();
   applyHashCase();
