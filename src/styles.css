@@ -50,6 +50,15 @@
   --scrollbar-hover: #636366;
 }
 
+/* Theme color transitions — applies to all elements so dark/light
+   toggle animates smoothly.  The .no-transition class (set in <head>
+   and removed after init) suppresses this during the initial paint. */
+*,
+*::before,
+*::after {
+  transition: background-color 0.35s ease, color 0.25s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
@@ -315,7 +324,7 @@ main {
   width: 0%;
   background: linear-gradient(90deg, var(--accent), #5abaff);
   border-radius: 3px;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, background-color 0.35s ease;
 }
 .progress-fill.complete {
   background: linear-gradient(90deg, #28b74b, var(--success));
@@ -422,7 +431,7 @@ main {
   justify-content: center;
   z-index: 100;
   opacity: 1;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, background-color 0.35s ease;
 }
 #settings-overlay.hidden { opacity: 0; pointer-events: none; }
 
@@ -433,7 +442,7 @@ main {
   width: 340px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   transform: scale(1);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.35s ease, box-shadow 0.35s ease;
 }
 #settings-overlay.hidden #settings-modal { transform: scale(0.94); }
 
@@ -490,7 +499,7 @@ main {
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, background-color 0.35s ease;
 }
 #settings-close:hover:not(:disabled) { opacity: 0.88; }
 #settings-close:disabled {

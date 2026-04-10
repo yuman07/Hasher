@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 // ── i18n ──────────────────────────────────────────────────────────────
@@ -81,12 +82,9 @@ function applyTranslations() {
 }
 
 function applyTheme() {
-  // Suppress all CSS transitions during theme swap to prevent flicker
-  document.documentElement.classList.add("no-transition");
   document.documentElement.setAttribute("data-theme", state.theme);
-  // Force a reflow so styles apply instantly, then re-enable transitions
-  document.documentElement.offsetHeight; // eslint-disable-line no-unused-expressions
-  document.documentElement.classList.remove("no-transition");
+  // Sync native window title bar with the web theme
+  getCurrentWindow().setTheme(state.theme).catch(() => {});
 }
 
 function updateSettingsCloseBtn() {
@@ -162,6 +160,12 @@ const ICONS = {
 async function init() {
   applyTheme();
   applyTranslations();
+
+  // The <head> inline script added .no-transition to prevent flash.
+  // Remove it after the first frame so future toggles animate smoothly.
+  requestAnimationFrame(() => {
+    document.documentElement.classList.remove("no-transition");
+  });
 
   // follow system theme when no explicit preference
   window

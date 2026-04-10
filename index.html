@@ -6,8 +6,9 @@
   <meta name="color-scheme" content="light dark" />
   <title>Hasher</title>
   <script>
-    // Apply theme synchronously before first paint to prevent flash
-    (function(){var t=localStorage.getItem('hasher-theme');if(!t)t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t)})();
+    // Apply theme synchronously before first paint to prevent flash;
+    // also lock transitions until JS init removes the class.
+    (function(){var d=document.documentElement,t=localStorage.getItem('hasher-theme');if(!t)t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';d.setAttribute('data-theme',t);d.classList.add('no-transition')})();
   </script>
   <link rel="stylesheet" href="/src/styles.css" />
 </head>
