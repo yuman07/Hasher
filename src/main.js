@@ -6,7 +6,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 // ── i18n ──────────────────────────────────────────────────────────────
 const messages = {
   en: {
-    dropText: "Drop files here to calculate hash",
+    dropText: "Drop files to calculate hash",
     dropSubtext: "Supports multiple files at once",
     clearAll: "Clear All",
     hashAlgorithms: "Hash Algorithms",
@@ -19,7 +19,7 @@ const messages = {
     skippedDirs: "Folders cannot be hashed and were skipped: ",
   },
   zh: {
-    dropText: "\u5c06\u6587\u4ef6\u62d6\u653e\u5230\u6b64\u5904\u8ba1\u7b97\u54c8\u5e0c\u503c",
+    dropText: "\u62d6\u653e\u6587\u4ef6\u4ee5\u8ba1\u7b97\u54c8\u5e0c\u503c",
     dropSubtext: "\u652f\u6301\u540c\u65f6\u5904\u7406\u591a\u4e2a\u6587\u4ef6",
     clearAll: "\u5168\u90e8\u6e05\u9664",
     hashAlgorithms: "\u54c8\u5e0c\u7b97\u6cd5",
