@@ -37,6 +37,7 @@ const state = {
   settings: loadSettings(),
   lang: loadLanguage(),
   theme: loadTheme(),
+  upperCase: localStorage.getItem("hasher-case") === "upper",
 };
 
 function loadSettings() {
@@ -92,6 +93,11 @@ function applyTheme(animate) {
   }
   root.setAttribute("data-theme", state.theme);
   getCurrentWindow().setTheme(state.theme).catch(() => {});
+}
+
+function applyHashCase() {
+  document.getElementById("app").classList.toggle("hash-upper", state.upperCase);
+  document.getElementById("case-btn").textContent = state.upperCase ? "AA" : "aa";
 }
 
 function updateSettingsCloseBtn() {
@@ -167,6 +173,7 @@ const ICONS = {
 async function init() {
   applyTheme(false);
   applyTranslations();
+  applyHashCase();
 
   // The <head> inline script added .no-transition to prevent flash.
   // Remove it after the first frame so future toggles can animate.
@@ -205,6 +212,13 @@ async function init() {
     const pct = Math.round(progress * 100);
     card.querySelector(".progress-fill").style.width = pct + "%";
     card.querySelector(".progress-text").textContent = pct + "%";
+  });
+
+  // hash case
+  document.getElementById("case-btn").addEventListener("click", () => {
+    state.upperCase = !state.upperCase;
+    localStorage.setItem("hasher-case", state.upperCase ? "upper" : "lower");
+    applyHashCase();
   });
 
   // language
@@ -360,9 +374,8 @@ async function computeHashes(fileId, filePath, algorithms) {
 
     resultsDiv.querySelectorAll(".copy-btn").forEach((btn, i) => {
       btn.addEventListener("click", () => {
-        navigator.clipboard.writeText(
-          `${results[i].algorithm}: ${results[i].hash}`
-        );
+        const h = state.upperCase ? results[i].hash.toUpperCase() : results[i].hash;
+        navigator.clipboard.writeText(`${results[i].algorithm}: ${h}`);
         btn.classList.add("copied");
         setTimeout(() => btn.classList.remove("copied"), 1500);
       });
