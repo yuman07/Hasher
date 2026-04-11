@@ -1,10 +1,17 @@
 # Hasher
 
-**Fast, cross-platform file hash checker built with Tauri 2 + Rust.**
+**Fast, lightweight file hash checker built with Tauri 2 + Rust.**
 
 [**中文文档**](./README_ZH.md)
 
 ---
+
+## Screenshots
+
+| Light Mode | Dark Mode |
+|:---:|:---:|
+| ![Light mode](screenshots/1.png) | ![Dark mode](screenshots/3.png) |
+| ![Hash results](screenshots/2.png) | ![Settings](screenshots/4.png) |
 
 ## Features
 
@@ -18,26 +25,25 @@
 
 ### Performance
 
-- **Memory-mapped I/O** (mmap) - zero userspace buffer, OS manages page cache
-- **Parallel threads** - one OS thread per algorithm, up to ~4x speedup on multi-core
-- **Platform-optimized I/O** - `madvise(SEQUENTIAL)` on macOS/Linux, `FILE_FLAG_SEQUENTIAL_SCAN` on Windows
-- **Minimal thread stack** - 256 KB per hash thread (vs 512 KB-8 MB default)
-- **Empty file fast path** - no mmap or thread overhead for 0-byte files
+- **Memory-mapped I/O** (mmap) — zero userspace buffer, OS manages page cache
+- **Parallel threads** — one OS thread per algorithm, up to ~4x speedup on multi-core
+- **Platform-optimized I/O** — `madvise(SEQUENTIAL)` on macOS/Linux, `FILE_FLAG_SEQUENTIAL_SCAN` on Windows
+- **Minimal thread stack** — 256 KB per hash thread (vs 512 KB–8 MB default)
+- **Empty file fast path** — no mmap or thread overhead for 0-byte files
+- **Tiny binary** — ~2.3 MB app bundle
 
 ### User Interface
 
-- **Drag & drop** - drop files anywhere in the window, or onto the macOS Dock icon (even when not running)
-- **Multiple files** - process many files at once with real-time progress bars
-- **Dark / Light mode** - auto-detects system preference, manual toggle with smooth animated transition
-- **Chinese / English** - auto-detects system locale, manual toggle
-- **File type icons** - color-coded icons for images, videos, audio, archives, code, documents, executables
-- **Full file path** - displayed below the file name, truncated with tooltip for long paths
-- **Copy with algorithm name** - click copy button to get `SHA-256: abc123...` in clipboard
-- **Collapse / expand** - per-card and global toggle for compact view
-- **Auto-incrementing index** - numbered cards via CSS counters
-- **Duplicate detection** - re-dropping the same file replaces the old result
-- **Folder rejection** - folders are skipped with a toast notification
-- **macOS Dock drop** - drop files on Dock icon to launch and compute (cold start supported)
+- **Drag & drop or click** — drop files anywhere in the window, or click the drop zone to open a file picker
+- **Multiple files** — process many files at once with real-time progress bars
+- **Dark / Light mode** — auto-detects system preference, manual toggle with smooth animated transition
+- **Chinese / English** — auto-detects system locale, manual toggle
+- **File type icons** — color-coded icons for images, videos, audio, archives, code, documents, executables
+- **Copy with algorithm name** — click copy button to get `SHA-256: abc123...` in clipboard
+- **Collapse / expand** — per-card and global toggle for compact view
+- **Duplicate detection** — re-dropping the same file replaces the old result
+- **Folder rejection** — folders are skipped with a toast notification
+- **macOS Dock drop** — drop files on Dock icon to launch and compute (cold start supported)
 
 ### Preferences Persistence
 
@@ -50,22 +56,12 @@ All user preferences are saved to `localStorage` and restored on restart:
 | `hasher-theme` | Theme (light/dark) | System preference |
 | `hasher-case` | Hash case (lower/upper) | Lowercase |
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | [Tauri 2](https://tauri.app/) |
-| Backend | Rust (md-5, sha1, sha2, memmap2) |
-| Frontend | Vanilla JS + CSS (no framework) |
-| Build | Vite 6 |
-| Package Manager | [Devbox](https://www.jetify.com/devbox) (Node.js) + Cargo (Rust) |
-
 ## Installation
 
 ### macOS
 
-1. Download `Hasher_x.x.x_macos_aarch64.zip` from [Releases](https://github.com/yuman07/Hasher/releases)
-2. Unzip and drag `Hasher.app` to Applications
+1. Download `Hasher.app.tar.gz` from [Releases](https://github.com/yuman07/Hasher/releases)
+2. Extract and drag `Hasher.app` to Applications
 3. **First launch**: macOS will show a security warning because the app is not signed with an Apple Developer certificate. To open it:
    - **Option A**: Right-click `Hasher.app` → **Open** → click **Open** in the dialog
    - **Option B**: Run in Terminal:
@@ -75,36 +71,36 @@ All user preferences are saved to `localStorage` and restored on restart:
 
 ### Windows
 
-1. Download `Hasher_x.x.x_x64-setup.exe` or `.msi` from [Releases](https://github.com/yuman07/Hasher/releases)
-2. Run the installer
+1. Download `Hasher.exe` from [Releases](https://github.com/yuman07/Hasher/releases)
+2. Run directly — no installation required (requires Windows 10+ with WebView2)
 
-## Getting Started
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | [Tauri 2](https://tauri.app/) |
+| Backend | Rust (md-5, sha1, sha2, memmap2) |
+| Frontend | Vanilla JS + CSS (no framework) |
+| Build | Vite 6 |
+
+## Development
 
 ### Prerequisites
 
 - [Rust](https://rustup.rs/) (1.77+)
 - [Node.js](https://nodejs.org/) (20+)
-- [Devbox](https://www.jetify.com/devbox) (optional, for isolated environment)
 
-### Development
+### Run
 
 ```bash
-# Install dependencies
-devbox run -- npm install
-
-# Start dev mode
-devbox run -- npx tauri dev
+npm install
+npx tauri dev
 ```
 
 ### Build
 
 ```bash
-# Build release
-devbox run -- npx tauri build --bundles app
-
-# Output:
-# macOS: src-tauri/target/release/bundle/macos/Hasher.app
-# Windows: src-tauri/target/release/bundle/msi/Hasher_*.msi
+npx tauri build
 ```
 
 ## Project Structure
@@ -124,9 +120,6 @@ Hasher/
     src/
       main.rs             # Rust entry point
       lib.rs              # Hash computation, mmap, threading, commands
-  devbox.json             # Devbox configuration
-  package.json            # npm configuration
-  vite.config.js          # Vite configuration
 ```
 
 ## Architecture
@@ -134,7 +127,7 @@ Hasher/
 ```
   Frontend (JS)                         Backend (Rust)
   ─────────────                         ──────────────
-  Drag & drop file     ──invoke──>      open_for_hashing()
+  Drop / select file   ──invoke──>      open_for_hashing()
                                           │
   Listen progress      <──emit───       mmap file
   event & update UI                       │
