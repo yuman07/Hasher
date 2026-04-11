@@ -62,7 +62,7 @@ Download [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — por
 | **Framework** | [Tauri 2](https://tauri.app/) |
 | **Backend** | Rust — md-5, sha1, sha2, memmap2 |
 | **Frontend** | Vanilla JS + CSS (zero framework) |
-| **Build** | Vite 6 |
+| **Build** | Vite 8 |
 
 ## Development
 

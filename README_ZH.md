@@ -62,7 +62,7 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 | **框架** | [Tauri 2](https://tauri.app/) |
 | **后端** | Rust — md-5, sha1, sha2, memmap2 |
 | **前端** | 原生 JS + CSS（零框架） |
-| **构建** | Vite 6 |
+| **构建** | Vite 8 |
 
 ## 开发
 
