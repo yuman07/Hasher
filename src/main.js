@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { open } from "@tauri-apps/plugin-dialog";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 // ── i18n ──────────────────────────────────────────────────────────────
 const messages = {
@@ -228,8 +229,13 @@ async function init() {
   applyHashCase();
 
   document.querySelector("header").addEventListener("mousedown", (e) => {
-    if (e.target.closest("button")) return;
+    if (e.target.closest("button") || e.target.closest(".app-version")) return;
     getCurrentWindow().startDragging().catch(() => {});
+  });
+
+  document.querySelector(".app-version").addEventListener("click", (e) => {
+    e.preventDefault();
+    openUrl("https://github.com/yuman07/Hasher/releases/tag/v1.0.0");
   });
 
   requestAnimationFrame(() => {
