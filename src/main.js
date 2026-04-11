@@ -65,15 +65,34 @@ function loadLanguage() {
 function loadTheme() {
   const saved = localStorage.getItem("hasher-theme");
   if (saved === "light" || saved === "dark") return saved;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 function t(key) {
-  return (messages[state.lang] && messages[state.lang][key]) || messages.en[key] || key;
+  return messages[state.lang]?.[key] || messages.en[key] || key;
 }
 
+// ── DOM cache ─────────────────────────────────────────────────────────
+const $ = (id) => document.getElementById(id);
+const dom = {};
+
+function cacheDom() {
+  Object.assign(dom, {
+    app: $("app"),
+    dropZone: $("drop-zone"),
+    fileList: $("file-list"),
+    clearBtn: $("clear-btn"),
+    collapseAllBtn: $("collapse-all-btn"),
+    caseBtn: $("case-btn"),
+    langBtn: $("lang-btn"),
+    themeBtn: $("theme-btn"),
+    settingsBtn: $("settings-btn"),
+    settingsOverlay: $("settings-overlay"),
+    settingsClose: $("settings-close"),
+  });
+}
+
+// ── UI state helpers ─────────────────────────────────────────────────
 function applyTranslations() {
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = t(el.dataset.i18n);
@@ -81,14 +100,13 @@ function applyTranslations() {
   document.querySelectorAll("[data-i18n-title]").forEach((el) => {
     el.title = t(el.dataset.i18nTitle);
   });
-  document.getElementById("lang-btn").classList.toggle("lang-zh", state.lang === "zh");
+  dom.langBtn.classList.toggle("lang-zh", state.lang === "zh");
 }
 
 let _themeSwitchTimer = 0;
 function applyTheme(animate) {
   const root = document.documentElement;
   if (animate) {
-    // Uniform 0.3 s transition on every element via !important class
     root.classList.add("theme-switching");
     clearTimeout(_themeSwitchTimer);
     _themeSwitchTimer = setTimeout(() => root.classList.remove("theme-switching"), 350);
@@ -98,26 +116,32 @@ function applyTheme(animate) {
 }
 
 function applyHashCase() {
-  document.getElementById("app").classList.toggle("hash-upper", state.upperCase);
-  document.getElementById("case-btn").classList.toggle("upper", state.upperCase);
+  dom.app.classList.toggle("hash-upper", state.upperCase);
+  dom.caseBtn.classList.toggle("upper", state.upperCase);
 }
 
 function syncCollapseAllBtn() {
-  const cards = document.querySelectorAll(".file-card");
+  const cards = dom.fileList.querySelectorAll(".file-card");
   const allCollapsed = cards.length > 0 && Array.from(cards).every((c) => c.classList.contains("collapsed"));
-  document.getElementById("collapse-all-btn").classList.toggle("all-collapsed", allCollapsed);
+  dom.collapseAllBtn.classList.toggle("all-collapsed", allCollapsed);
 }
 
 function updateSettingsCloseBtn() {
-  const hasAny = Object.values(state.settings).some((v) => v);
-  document.getElementById("settings-close").disabled = !hasAny;
+  dom.settingsClose.disabled = !Object.values(state.settings).some((v) => v);
+}
+
+function updateFileListState() {
+  const hasFiles = state.files.size > 0;
+  dom.app.classList.toggle("has-files", hasFiles);
+  dom.clearBtn.disabled = !hasFiles;
+  dom.collapseAllBtn.disabled = !hasFiles;
 }
 
 // ── helpers ───────────────────────────────────────────────────────────
+const _escEl = document.createElement("div");
 function escapeHtml(str) {
-  const d = document.createElement("div");
-  d.textContent = str;
-  return d.innerHTML;
+  _escEl.textContent = str;
+  return _escEl.innerHTML;
 }
 
 function showToast(msg) {
@@ -150,16 +174,15 @@ const EXT_SETS = {
   exe: ["exe","msi","app","bat","cmd","com","appimage","apk","ipa","deb","rpm"],
 };
 
-function getFileIconSvg(filename) {
-  const ext = (filename.lastIndexOf(".") > 0
-    ? filename.slice(filename.lastIndexOf(".") + 1)
-    : ""
-  ).toLowerCase();
+const EXT_TYPE = new Map();
+for (const [type, exts] of Object.entries(EXT_SETS)) {
+  for (const ext of exts) EXT_TYPE.set(ext, type);
+}
 
-  for (const [type, exts] of Object.entries(EXT_SETS)) {
-    if (exts.includes(ext)) return ICONS[type];
-  }
-  return ICONS.default;
+function getFileIconSvg(filename) {
+  const dot = filename.lastIndexOf(".");
+  const ext = dot > 0 ? filename.slice(dot + 1).toLowerCase() : "";
+  return ICONS[EXT_TYPE.get(ext) || "default"];
 }
 
 const ICONS = {
@@ -191,7 +214,8 @@ const ICONS = {
 
 // ── initialisation ────────────────────────────────────────────────────
 async function init() {
-  // Detect macOS for overlay title-bar padding
+  cacheDom();
+
   if (/Mac/.test(navigator.userAgent)) {
     document.body.classList.add("platform-mac");
   }
@@ -200,108 +224,82 @@ async function init() {
   applyTranslations();
   applyHashCase();
 
-  // Window dragging: mousedown on header (but not on buttons) starts drag
   document.querySelector("header").addEventListener("mousedown", (e) => {
     if (e.target.closest("button")) return;
     getCurrentWindow().startDragging().catch(() => {});
   });
 
-  // The <head> inline script added .no-transition to prevent flash.
-  // Remove it after the first frame so future toggles can animate.
   requestAnimationFrame(() => {
     document.documentElement.classList.remove("no-transition");
   });
 
-  // follow system theme when no explicit preference
-  window
-    .matchMedia("(prefers-color-scheme: dark)")
-    .addEventListener("change", (e) => {
-      if (!localStorage.getItem("hasher-theme")) {
-        state.theme = e.matches ? "dark" : "light";
-        applyTheme(true);
-      }
-    });
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    if (!localStorage.getItem("hasher-theme")) {
+      state.theme = e.matches ? "dark" : "light";
+      applyTheme(true);
+    }
+  });
 
   const appWindow = getCurrentWebviewWindow();
 
-  // Click to select files
-  document.getElementById("drop-zone").addEventListener("click", async () => {
-    const selected = await open({ multiple: true, directory: false });
-    if (selected) {
-      const paths = Array.isArray(selected) ? selected : [selected];
-      if (paths.length > 0) handleFiles(paths);
-    }
+  dom.dropZone.addEventListener("click", async () => {
+    const paths = await open({ multiple: true, directory: false });
+    if (paths?.length) handleFiles(paths);
   });
 
   await appWindow.onDragDropEvent((event) => {
-    const dropZone = document.getElementById("drop-zone");
-    if (event.payload.type === "enter" || event.payload.type === "over") {
-      dropZone.classList.add("drag-over");
-    } else if (event.payload.type === "drop") {
-      dropZone.classList.remove("drag-over");
-      handleFiles(event.payload.paths);
-    } else {
-      dropZone.classList.remove("drag-over");
-    }
+    const { type, paths } = event.payload;
+    dom.dropZone.classList.toggle("drag-over", type === "enter" || type === "over");
+    if (type === "drop") handleFiles(paths);
   });
 
-  // Files opened via macOS Dock drop (app already running)
-  await listen("open-files", (event) => {
-    handleFiles(event.payload);
-  });
+  await listen("open-files", (event) => handleFiles(event.payload));
 
-  // Files opened via macOS Dock drop (cold launch — arrived before frontend)
   const pending = await invoke("take_pending_files");
-  if (pending.length > 0) {
-    handleFiles(pending);
-  }
+  if (pending.length > 0) handleFiles(pending);
 
   await listen("hash-progress", (event) => {
     const { file_id, progress } = event.payload;
-    const card = document.querySelector(`[data-file-id="${file_id}"]`);
+    const card = dom.fileList.querySelector(`[data-file-id="${file_id}"]`);
     if (!card) return;
     const pct = Math.round(progress * 100);
     card.querySelector(".progress-fill").style.width = pct + "%";
     card.querySelector(".progress-text").textContent = pct + "%";
   });
 
-  // hash case
-  document.getElementById("case-btn").addEventListener("click", () => {
+  dom.caseBtn.addEventListener("click", () => {
     state.upperCase = !state.upperCase;
     localStorage.setItem("hasher-case", state.upperCase ? "upper" : "lower");
     applyHashCase();
   });
 
-  // language
-  document.getElementById("lang-btn").addEventListener("click", () => {
+  dom.langBtn.addEventListener("click", () => {
     state.lang = state.lang === "en" ? "zh" : "en";
     localStorage.setItem("hasher-lang", state.lang);
     applyTranslations();
   });
 
-  // theme
-  document.getElementById("theme-btn").addEventListener("click", () => {
+  dom.themeBtn.addEventListener("click", () => {
     state.theme = state.theme === "light" ? "dark" : "light";
     localStorage.setItem("hasher-theme", state.theme);
     applyTheme(true);
   });
 
-  // settings modal
-  document.getElementById("settings-btn").addEventListener("click", () => {
+  dom.settingsBtn.addEventListener("click", () => {
     updateSettingsCloseBtn();
-    document.getElementById("settings-overlay").classList.remove("hidden");
+    dom.settingsOverlay.classList.remove("hidden");
   });
-  document.getElementById("settings-overlay").addEventListener("click", (e) => {
-    if (e.target === e.currentTarget && !document.getElementById("settings-close").disabled)
-      document.getElementById("settings-overlay").classList.add("hidden");
+  dom.settingsOverlay.addEventListener("click", (e) => {
+    if (e.target === e.currentTarget && !dom.settingsClose.disabled)
+      dom.settingsOverlay.classList.add("hidden");
   });
-  document.getElementById("settings-close").addEventListener("click", () => {
-    if (document.getElementById("settings-close").disabled) return;
-    document.getElementById("settings-overlay").classList.add("hidden");
+  dom.settingsClose.addEventListener("click", () => {
+    if (dom.settingsClose.disabled) return;
+    dom.settingsOverlay.classList.add("hidden");
   });
 
   for (const algo of ["md5", "sha1", "sha256", "sha512"]) {
-    const toggle = document.getElementById(`toggle-${algo}`);
+    const toggle = $(`toggle-${algo}`);
     toggle.checked = state.settings[algo];
     toggle.addEventListener("change", () => {
       state.settings[algo] = toggle.checked;
@@ -310,23 +308,19 @@ async function init() {
     });
   }
 
-  // collapse/expand all
-  document.getElementById("collapse-all-btn").addEventListener("click", () => {
-    const btn = document.getElementById("collapse-all-btn");
-    if (btn.disabled) return;
-    const cards = document.querySelectorAll(".file-card");
+  dom.collapseAllBtn.addEventListener("click", () => {
+    if (dom.collapseAllBtn.disabled) return;
+    const cards = dom.fileList.querySelectorAll(".file-card");
     const allCollapsed = Array.from(cards).every((c) => c.classList.contains("collapsed"));
     cards.forEach((c) => c.classList.toggle("collapsed", !allCollapsed));
     syncCollapseAllBtn();
   });
 
-  document.getElementById("clear-btn").addEventListener("click", () => {
-    if (document.getElementById("clear-btn").disabled) return;
+  dom.clearBtn.addEventListener("click", () => {
+    if (dom.clearBtn.disabled) return;
     state.files.clear();
-    document.getElementById("file-list").innerHTML = "";
-    document.getElementById("app").classList.remove("has-files");
-    document.getElementById("clear-btn").disabled = true;
-    document.getElementById("collapse-all-btn").disabled = true;
+    dom.fileList.innerHTML = "";
+    updateFileListState();
   });
 }
 
@@ -337,21 +331,19 @@ async function handleFiles(paths) {
     .map(([k]) => k);
 
   if (algorithms.length === 0) {
-    document.getElementById("settings-overlay").classList.remove("hidden");
+    dom.settingsOverlay.classList.remove("hidden");
     return;
   }
 
-  document.getElementById("app").classList.add("has-files");
-  document.getElementById("clear-btn").disabled = false;
-  document.getElementById("collapse-all-btn").disabled = false;
+  dom.app.classList.add("has-files");
+  dom.clearBtn.disabled = false;
+  dom.collapseAllBtn.disabled = false;
 
   const skipped = [];
   for (const filePath of paths) {
-    // Remove existing card for the same file path
     for (const [oldId, oldFile] of state.files) {
       if (oldFile.path === filePath) {
-        const oldCard = document.querySelector(`[data-file-id="${oldId}"]`);
-        if (oldCard) oldCard.remove();
+        dom.fileList.querySelector(`[data-file-id="${oldId}"]`)?.remove();
         state.files.delete(oldId);
         break;
       }
@@ -373,15 +365,8 @@ async function handleFiles(paths) {
     computeHashes(fileId, filePath, algorithms);
   }
 
-  if (skipped.length > 0) {
-    showToast(t("skippedDirs") + skipped.join(", "));
-  }
-
-  if (state.files.size === 0) {
-    document.getElementById("app").classList.remove("has-files");
-    document.getElementById("clear-btn").disabled = true;
-    document.getElementById("collapse-all-btn").disabled = true;
-  }
+  if (skipped.length > 0) showToast(t("skippedDirs") + skipped.join(", "));
+  updateFileListState();
 }
 
 function createFileCard(fileId, meta, filePath) {
@@ -427,19 +412,15 @@ function createFileCard(fileId, meta, filePath) {
     state.files.delete(fileId);
     card.classList.add("removing");
     card.addEventListener("animationend", () => card.remove());
-    if (state.files.size === 0) {
-      document.getElementById("app").classList.remove("has-files");
-      document.getElementById("clear-btn").disabled = true;
-      document.getElementById("collapse-all-btn").disabled = true;
-    }
+    updateFileListState();
   });
 
-  document.getElementById("file-list").appendChild(card);
+  dom.fileList.appendChild(card);
   requestAnimationFrame(() => card.classList.add("visible"));
 }
 
 async function computeHashes(fileId, filePath, algorithms) {
-  const card = document.querySelector(`[data-file-id="${fileId}"]`);
+  const card = dom.fileList.querySelector(`[data-file-id="${fileId}"]`);
   if (!card) return;
 
   try {

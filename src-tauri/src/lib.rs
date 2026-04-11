@@ -27,7 +27,6 @@ struct HashProgress {
 
 #[derive(Clone, Serialize)]
 struct HashResult {
-    file_id: String,
     algorithm: String,
     hash: String,
 }
@@ -96,7 +95,7 @@ fn spawn_hasher<D: Digest + Send + 'static>(
 }
 
 /// Handle 0-byte files without spawning threads or touching mmap.
-fn hash_empty(file_id: &str, algorithms: &[String]) -> Vec<HashResult> {
+fn hash_empty(algorithms: &[String]) -> Vec<HashResult> {
     algorithms
         .iter()
         .filter_map(|algo| {
@@ -108,7 +107,6 @@ fn hash_empty(file_id: &str, algorithms: &[String]) -> Vec<HashResult> {
                 _ => return None,
             };
             Some(HashResult {
-                file_id: file_id.into(),
                 algorithm: name.into(),
                 hash,
             })
@@ -139,7 +137,7 @@ async fn compute_hashes(
                 "hash-progress",
                 HashProgress { file_id: file_id.clone(), progress: 1.0 },
             );
-            return Ok(hash_empty(&file_id, &algorithms));
+            return Ok(hash_empty(&algorithms));
         }
 
         // ── memory-map: zero user-space buffer, OS manages page cache ──
@@ -203,7 +201,6 @@ async fn compute_hashes(
         let results = handles
             .into_iter()
             .map(|(name, h)| HashResult {
-                file_id: file_id.clone(),
                 algorithm: name.into(),
                 hash: h.join().unwrap_or_default(),
             })

@@ -150,6 +150,7 @@ header h1 {
   gap: 6px;
 }
 
+#clear-btn,
 #case-btn,
 #lang-btn,
 #collapse-all-btn,
@@ -174,6 +175,7 @@ header h1 {
   background: var(--accent-light);
   color: var(--accent);
 }
+#clear-btn:disabled,
 #collapse-all-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
@@ -224,15 +226,15 @@ main {
   min-height: 200px;
   cursor: pointer;
 }
-#drop-zone:hover {
+#drop-zone:hover,
+#drop-zone.drag-over {
   border-color: var(--accent);
   background: var(--accent-light);
 }
 #drop-zone.drag-over {
-  border-color: var(--accent);
-  background: var(--accent-light);
   border-style: solid;
 }
+#drop-zone:hover .drop-icon,
 #drop-zone.drag-over .drop-icon {
   color: var(--accent);
   transform: scale(1.1);
@@ -541,26 +543,9 @@ main {
 .copy-btn.copied .icon-copy { display: none; }
 .copy-btn.copied .icon-check { display: block; color: var(--success); }
 
-/* ── Clear Button (icon in header) ── */
-#clear-btn {
-  background: none;
-  border: none;
-  cursor: default;
-  padding: 8px;
-  border-radius: 8px;
-  color: var(--text-secondary);
-  transition: all 0.15s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 #clear-btn:hover:not(:disabled) {
   color: var(--error);
   background: rgba(255, 59, 48, 0.06);
-}
-#clear-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
 }
 
 /* ── Settings Modal ── */
