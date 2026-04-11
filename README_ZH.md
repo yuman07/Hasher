@@ -66,9 +66,23 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 ## 开发
 
-```bash
-# 前置条件：Rust 1.77+、Node.js 20+
+### 前置条件
 
+- [Rust](https://rustup.rs/) (1.77+)
+- [Devbox](https://www.jetify.com/devbox)（推荐，自动管理 Node.js）
+- 或手动安装 [Node.js](https://nodejs.org/) (22+)
+
+### 使用 Devbox（推荐）
+
+```bash
+devbox run -- npm install
+devbox run -- npx tauri dev       # 开发模式
+devbox run -- npx tauri build     # 构建发布版
+```
+
+### 不使用 Devbox
+
+```bash
 npm install
 npx tauri dev       # 开发模式
 npx tauri build     # 构建发布版

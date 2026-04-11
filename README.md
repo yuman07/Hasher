@@ -66,9 +66,23 @@ Download [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — por
 
 ## Development
 
-```bash
-# Prerequisites: Rust 1.77+, Node.js 20+
+### Prerequisites
 
+- [Rust](https://rustup.rs/) (1.77+)
+- [Devbox](https://www.jetify.com/devbox) (recommended, manages Node.js automatically)
+- Or [Node.js](https://nodejs.org/) (22+) if not using Devbox
+
+### With Devbox (recommended)
+
+```bash
+devbox run -- npm install
+devbox run -- npx tauri dev       # dev mode
+devbox run -- npx tauri build     # release build
+```
+
+### Without Devbox
+
+```bash
 npm install
 npx tauri dev       # dev mode
 npx tauri build     # release build
