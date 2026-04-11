@@ -7,6 +7,9 @@
     "core:window:allow-set-theme",
     "core:window:allow-start-dragging",
     "dialog:allow-open",
-    "opener:allow-open-url"
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [{ "url": "https://github.com/*" }]
+    }
   ]
 }

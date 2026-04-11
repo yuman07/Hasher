@@ -235,7 +235,7 @@ async function init() {
 
   document.querySelector(".app-version").addEventListener("click", (e) => {
     e.preventDefault();
-    openUrl("https://github.com/yuman07/Hasher/releases/tag/v1.0.0");
+    openUrl("https://github.com/yuman07/Hasher");
   });
 
   requestAnimationFrame(() => {
