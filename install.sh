@@ -7,24 +7,19 @@ INSTALL_DIR="/Applications"
 TMP_DIR=$(mktemp -d)
 
 echo "Fetching latest release..."
-DMG_URL=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" \
-  | awk -F'"' '/browser_download_url.*\.dmg/{print $4; exit}')
+TAG=$(curl -fsSI -o /dev/null -w '%{redirect_url}' "https://github.com/$REPO/releases/latest" | grep -o '[^/]*$')
+VERSION=${TAG#v}
+DMG_NAME="Hasher_${VERSION}_aarch64.dmg"
+DMG_URL="https://github.com/$REPO/releases/download/$TAG/$DMG_NAME"
+DMG_FILE="$TMP_DIR/$DMG_NAME"
 
-if [ -z "$DMG_URL" ]; then
-  echo "Error: No macOS .dmg asset found in the latest release."
-  rm -rf "$TMP_DIR"
-  exit 1
-fi
-
-DMG_FILE="$TMP_DIR/Hasher.dmg"
-
-echo "Downloading $(basename "$DMG_URL")..."
-curl -fsSL "$DMG_URL" -o "$DMG_FILE"
+echo "Downloading $DMG_NAME..."
+curl -fsSL -L "$DMG_URL" -o "$DMG_FILE"
 
 echo "Installing to $INSTALL_DIR..."
-MOUNT_DIR=$(hdiutil attach "$DMG_FILE" -nobrowse -quiet | tail -1 | awk -F'\t' '{print $NF}')
+MOUNT_DIR=$(hdiutil attach "$DMG_FILE" -nobrowse -noverify 2>/dev/null | tail -1 | awk -F'\t' '{print $NF}')
 cp -rf "$MOUNT_DIR/$APP_NAME" "$INSTALL_DIR/"
-hdiutil detach "$MOUNT_DIR" -quiet
+hdiutil detach "$MOUNT_DIR" -quiet 2>/dev/null
 xattr -cr "$INSTALL_DIR/$APP_NAME"
 
 rm -rf "$TMP_DIR"
