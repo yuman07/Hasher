@@ -1,4 +1,4 @@
-name: Build Windows Release
+name: Build Release
 
 on:
   release:
@@ -13,6 +13,32 @@ permissions:
   contents: write
 
 jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Setup Rust (aarch64)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Tauri (macOS ARM)
+        run: npx tauri build --target aarch64-apple-darwin
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg --clobber
+
   build-windows:
     runs-on: windows-latest
     steps:
