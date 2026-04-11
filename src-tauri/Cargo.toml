@@ -5,7 +5,7 @@ edition = "2021"
 
 [lib]
 name = "hasher_lib"
-crate-type = ["lib", "cdylib", "staticlib"]
+crate-type = ["lib"]
 
 [[bin]]
 name = "hasher"
@@ -29,4 +29,5 @@ tauri-plugin-dialog = "2"
 strip = true
 lto = true
 codegen-units = 1
-opt-level = 3
+opt-level = "z"
+panic = "abort"
