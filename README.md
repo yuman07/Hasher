@@ -94,8 +94,8 @@ Download [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — por
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Rust** | [rustup.rs](https://rustup.rs/) (1.77+) | [rustup.rs](https://rustup.rs/) (1.77+) |
-| **Node.js** | [Devbox](https://www.jetify.com/devbox) (recommended) or [Node.js 22+](https://nodejs.org/) | [Node.js 22+](https://nodejs.org/) |
+| **Rust** | [rustup.rs](https://rustup.rs/) (1.85+) | [rustup.rs](https://rustup.rs/) (1.85+) |
+| **Node.js** | [Devbox](https://www.jetify.com/devbox) (recommended) or [Node.js 24+](https://nodejs.org/) | [Node.js 24+](https://nodejs.org/) |
 | **C++ toolchain** | Xcode Command Line Tools | [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (C++ workload) |
 
 ### macOS (with Devbox)
