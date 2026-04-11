@@ -43,10 +43,10 @@
 
 ### macOS (Apple Silicon)
 
-**One-line install:**
+**Quick install:**
 
 ```bash
-curl -fsSL https://github.com/yuman07/Hasher/releases/latest/download/Hasher_1.0.0_macos_aarch64.zip -o /tmp/Hasher.zip && unzip -oq /tmp/Hasher.zip -d /tmp/Hasher && cp -rf /tmp/Hasher/Hasher.app /Applications/ && xattr -cr /Applications/Hasher.app && rm -rf /tmp/Hasher /tmp/Hasher.zip && echo "✅ Hasher installed to /Applications"
+curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | bash
 ```
 
 Or download manually from [Releases](https://github.com/yuman07/Hasher/releases/latest) and drag `Hasher.app` to Applications.
