@@ -106,13 +106,18 @@ function applyTranslations() {
 let _themeSwitchTimer = 0;
 function applyTheme(animate) {
   const root = document.documentElement;
+  const setNative = () => getCurrentWindow().setTheme(state.theme).catch(() => {});
   if (animate) {
     root.classList.add("theme-switching");
     clearTimeout(_themeSwitchTimer);
-    _themeSwitchTimer = setTimeout(() => root.classList.remove("theme-switching"), 350);
+    _themeSwitchTimer = setTimeout(() => {
+      root.classList.remove("theme-switching");
+      setNative();
+    }, 350);
+  } else {
+    setNative();
   }
   root.setAttribute("data-theme", state.theme);
-  getCurrentWindow().setTheme(state.theme).catch(() => {});
 }
 
 function applyHashCase() {
