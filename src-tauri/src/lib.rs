@@ -74,13 +74,7 @@ fn hash_region<D: Digest>(data: &[u8], processed: &AtomicU64) -> String {
         h.update(chunk);
         processed.fetch_add(chunk.len() as u64, Ordering::Relaxed);
     }
-    let digest = h.finalize();
-    let mut hex = String::with_capacity(digest.len() * 2);
-    for &b in digest.iter() {
-        hex.push(HEX_LUT[(b >> 4) as usize] as char);
-        hex.push(HEX_LUT[(b & 0x0f) as usize] as char);
-    }
-    hex
+    to_hex(&h.finalize())
 }
 
 /// Spawn a hash thread with a small stack.
@@ -94,16 +88,25 @@ fn spawn_hasher<D: Digest + Send + 'static>(
         .map_err(|e| format!("Thread creation failed: {}", e))
 }
 
+fn to_hex(bytes: &[u8]) -> String {
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for &b in bytes {
+        hex.push(HEX_LUT[(b >> 4) as usize] as char);
+        hex.push(HEX_LUT[(b & 0x0f) as usize] as char);
+    }
+    hex
+}
+
 /// Handle 0-byte files without spawning threads or touching mmap.
 fn hash_empty(algorithms: &[String]) -> Vec<HashResult> {
     algorithms
         .iter()
         .filter_map(|algo| {
             let (name, hash) = match algo.as_str() {
-                "md5" => ("MD5", format!("{:x}", Md5::digest(b""))),
-                "sha1" => ("SHA-1", format!("{:x}", Sha1::digest(b""))),
-                "sha256" => ("SHA-256", format!("{:x}", Sha256::digest(b""))),
-                "sha512" => ("SHA-512", format!("{:x}", Sha512::digest(b""))),
+                "md5" => ("MD5", to_hex(&Md5::digest(b""))),
+                "sha1" => ("SHA-1", to_hex(&Sha1::digest(b""))),
+                "sha256" => ("SHA-256", to_hex(&Sha256::digest(b""))),
+                "sha512" => ("SHA-512", to_hex(&Sha512::digest(b""))),
                 _ => return None,
             };
             Some(HashResult {
