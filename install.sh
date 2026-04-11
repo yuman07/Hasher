@@ -8,9 +8,7 @@ TMP_DIR=$(mktemp -d)
 
 echo "Fetching latest release..."
 DMG_URL=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" \
-  | grep -o '"browser_download_url": *"[^"]*\.dmg"' \
-  | head -1 \
-  | sed 's/.*"browser_download_url": *"//;s/"$//')
+  | awk -F'"' '/browser_download_url.*\.dmg/{print $4; exit}')
 
 if [ -z "$DMG_URL" ]; then
   echo "Error: No macOS .dmg asset found in the latest release."
