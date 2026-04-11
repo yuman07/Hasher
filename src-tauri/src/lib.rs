@@ -248,8 +248,9 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
 
-    app.run(|app_handle, event| {
-        if let tauri::RunEvent::Opened { urls } = event {
+    app.run(|_app_handle, _event| {
+        #[cfg(target_os = "macos")]
+        if let tauri::RunEvent::Opened { urls } = &_event {
             let paths: Vec<String> = urls
                 .iter()
                 .filter_map(|u| u.to_file_path().ok())
@@ -260,11 +261,9 @@ pub fn run() {
                 return;
             }
 
-            // Try emitting to frontend (works if already loaded)
-            let _ = app_handle.emit("open-files", &paths);
+            let _ = _app_handle.emit("open-files", &paths);
 
-            // Also buffer for frontend init (cold launch from Dock drop)
-            if let Some(state) = app_handle.try_state::<PendingFiles>() {
+            if let Some(state) = _app_handle.try_state::<PendingFiles>() {
                 state.0.lock().unwrap().extend(paths);
             }
         }
