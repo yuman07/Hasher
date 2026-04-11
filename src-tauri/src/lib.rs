@@ -241,6 +241,7 @@ fn take_pending_files(state: State<PendingFiles>) -> Vec<String> {
 
 pub fn run() {
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(PendingFiles(Mutex::new(Vec::new())))
         .invoke_handler(tauri::generate_handler![
             compute_hashes,

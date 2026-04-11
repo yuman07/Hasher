@@ -2,11 +2,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { open } from "@tauri-apps/plugin-dialog";
 
 // ── i18n ──────────────────────────────────────────────────────────────
 const messages = {
   en: {
-    dropText: "Drop files to calculate hash",
+    dropText: "Drop or click to select files",
     dropSubtext: "Supports multiple files at once",
     clearAll: "Clear All",
     hashAlgorithms: "Hash Algorithms",
@@ -19,7 +20,7 @@ const messages = {
     skippedDirs: "Folders cannot be hashed and were skipped: ",
   },
   zh: {
-    dropText: "\u62d6\u653e\u6587\u4ef6\u4ee5\u8ba1\u7b97\u54c8\u5e0c\u503c",
+    dropText: "\u62d6\u653e\u6216\u70b9\u51fb\u9009\u62e9\u6587\u4ef6",
     dropSubtext: "\u652f\u6301\u540c\u65f6\u5904\u7406\u591a\u4e2a\u6587\u4ef6",
     clearAll: "\u5168\u90e8\u6e05\u9664",
     hashAlgorithms: "\u54c8\u5e0c\u7b97\u6cd5",
@@ -222,6 +223,15 @@ async function init() {
     });
 
   const appWindow = getCurrentWebviewWindow();
+
+  // Click to select files
+  document.getElementById("drop-zone").addEventListener("click", async () => {
+    const selected = await open({ multiple: true, directory: false });
+    if (selected) {
+      const paths = Array.isArray(selected) ? selected : [selected];
+      if (paths.length > 0) handleFiles(paths);
+    }
+  });
 
   await appWindow.onDragDropEvent((event) => {
     const dropZone = document.getElementById("drop-zone");

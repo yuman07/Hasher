@@ -222,6 +222,11 @@ main {
   padding: 48px 24px;
   transition: all 0.3s ease;
   min-height: 200px;
+  cursor: pointer;
+}
+#drop-zone:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
 }
 #drop-zone.drag-over {
   border-color: var(--accent);
