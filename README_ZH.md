@@ -43,13 +43,37 @@
 
 ### macOS (Apple Silicon)
 
-**一键安装：**
+**一键安装（推荐）：**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | bash
 ```
 
-也可以从 [Releases](https://github.com/yuman07/Hasher/releases/latest) 手动下载，将 `Hasher.app` 拖入「应用程序」文件夹。
+脚本会自动下载最新版本、安装到 `/Applications` 并移除隔离标记，打开即用，无需额外操作。
+
+**手动安装：**
+
+从 [Releases](https://github.com/yuman07/Hasher/releases/latest) 下载 `.dmg` 文件，打开后将 `Hasher.app` 拖入「应用程序」文件夹。
+
+> **注意：** 本应用没有 Apple 开发者签名。首次打开时 macOS Gatekeeper 会拦截，提示 *「无法打开"Hasher.app"，因为 Apple 无法检查其是否包含恶意软件」*。请选择以下 **任一方法** 解决：
+>
+> **方法一 — 系统设置（最简单）：**
+> 1. 尝试打开 Hasher — 会被拦截
+> 2. 打开 **系统设置 > 隐私与安全性**
+> 3. 向下滚动到「安全性」部分，会看到关于 Hasher 被阻止的提示
+> 4. 点击 **「仍要打开」**，在弹出的对话框中确认
+>
+> **方法二 — 右键打开：**
+> 1. 在访达中，右键点击（或 Control + 点击）`Hasher.app`
+> 2. 选择 **「打开」**
+> 3. 在弹出的对话框中点击 **「打开」**
+>
+> **方法三 — 终端命令：**
+> ```bash
+> xattr -cr /Applications/Hasher.app
+> ```
+>
+> 以上操作只需执行一次，之后即可正常打开。
 
 ### Windows (x64)
 

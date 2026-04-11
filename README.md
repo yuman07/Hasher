@@ -43,13 +43,37 @@
 
 ### macOS (Apple Silicon)
 
-**Quick install:**
+**Quick install (recommended):**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | bash
 ```
 
-Or download manually from [Releases](https://github.com/yuman07/Hasher/releases/latest) and drag `Hasher.app` to Applications.
+The script automatically downloads the latest version, installs it to `/Applications`, and removes the quarantine flag so it opens without issues.
+
+**Manual install:**
+
+Download the `.dmg` from [Releases](https://github.com/yuman07/Hasher/releases/latest), open it, and drag `Hasher.app` to Applications.
+
+> **Note:** This app is not signed with an Apple Developer certificate. macOS Gatekeeper will block it on first launch with a message like *"Hasher.app can't be opened because Apple cannot check it for malicious software"*. To fix this, choose **one** of the following methods after installing:
+>
+> **Method 1 — System Settings (easiest):**
+> 1. Try to open Hasher — it will be blocked
+> 2. Go to **System Settings > Privacy & Security**
+> 3. Scroll down to the Security section, you'll see a message about Hasher being blocked
+> 4. Click **"Open Anyway"**, then confirm in the dialog
+>
+> **Method 2 — Right-click:**
+> 1. In Finder, right-click (or Control-click) on `Hasher.app`
+> 2. Select **"Open"** from the context menu
+> 3. Click **"Open"** in the dialog that appears
+>
+> **Method 3 — Terminal:**
+> ```bash
+> xattr -cr /Applications/Hasher.app
+> ```
+>
+> You only need to do this once. After the first successful launch, macOS will remember your choice.
 
 ### Windows (x64)
 
