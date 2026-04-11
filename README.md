@@ -68,11 +68,13 @@ Download [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — por
 
 ### Prerequisites
 
-- [Rust](https://rustup.rs/) (1.77+)
-- [Devbox](https://www.jetify.com/devbox) (recommended, manages Node.js automatically)
-- Or [Node.js](https://nodejs.org/) (22+) if not using Devbox
+| | macOS | Windows |
+|:---|:---|:---|
+| **Rust** | [rustup.rs](https://rustup.rs/) (1.77+) | [rustup.rs](https://rustup.rs/) (1.77+) |
+| **Node.js** | [Devbox](https://www.jetify.com/devbox) (recommended) or [Node.js 22+](https://nodejs.org/) | [Node.js 22+](https://nodejs.org/) |
+| **C++ toolchain** | Xcode Command Line Tools | [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (C++ workload) |
 
-### With Devbox (recommended)
+### macOS (with Devbox)
 
 ```bash
 devbox run -- npm install
@@ -80,7 +82,7 @@ devbox run -- npx tauri dev       # dev mode
 devbox run -- npx tauri build     # release build
 ```
 
-### Without Devbox
+### macOS (without Devbox) / Windows
 
 ```bash
 npm install
