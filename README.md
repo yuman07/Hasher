@@ -1,125 +1,74 @@
-# Hasher
+<p align="center">
+  <img src="screenshots/1.png" width="600" />
+</p>
 
-**Fast, lightweight file hash checker built with Tauri 2 + Rust.**
+<h1 align="center">Hasher</h1>
 
-[**中文文档**](./README_ZH.md)
+<p align="center">
+  <strong>Fast, lightweight file hash checker built with Tauri 2 + Rust</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/yuman07/Hasher/releases"><img src="https://img.shields.io/github/v/release/yuman07/Hasher?style=flat-square&color=blue" alt="Release" /></a>
+  <a href="https://github.com/yuman07/Hasher/blob/main/LICENSE"><img src="https://img.shields.io/github/license/yuman07/Hasher?style=flat-square" alt="License" /></a>
+  <a href="https://github.com/yuman07/Hasher/releases"><img src="https://img.shields.io/github/downloads/yuman07/Hasher/total?style=flat-square&color=green" alt="Downloads" /></a>
+  <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey?style=flat-square" alt="Platform" />
+</p>
+
+<p align="center">
+  <a href="./README_ZH.md">中文文档</a>
+</p>
 
 ---
 
-## Screenshots
+<p align="center">
+  <img src="screenshots/2.png" width="49%" />
+  <img src="screenshots/3.png" width="49%" />
+</p>
 
-| Light Mode | Dark Mode |
-|:---:|:---:|
-| ![Light mode](screenshots/1.png) | ![Dark mode](screenshots/3.png) |
-| ![Hash results](screenshots/2.png) | ![Settings](screenshots/4.png) |
+<p align="center">
+  <img src="screenshots/4.png" width="300" />
+</p>
 
 ## Features
 
-### Hash Algorithms
+- **Algorithms** — MD5 / SHA-1 / SHA-256 / SHA-512, toggle any combination in settings
+- **Drag & drop or click** — drop files into the window or click to open a file picker
+- **Batch processing** — handle multiple files at once with real-time progress bars
+- **Parallel & fast** — one thread per algorithm, memory-mapped I/O, ~2.3 MB binary
+- **Dark / Light mode** — follows system preference, smooth animated toggle
+- **Chinese / English** — auto-detects system locale
+- **One-click copy** — copies `SHA-256: abc123...` to clipboard
+- **File type icons** — color-coded by category
+- **Collapse / expand** — per-card and global toggle
+- **macOS Dock drop** — drop files on Dock icon to hash (cold start supported)
 
-- **MD5** / **SHA-1** / **SHA-256** / **SHA-512**
-- All algorithms computed in a single pass per file (no re-reading)
-- Each algorithm runs on a dedicated thread for parallel computation
-- Toggle any combination on/off in settings
-- Uppercase / lowercase hash display with one-click toggle
+## Download
 
-### Performance
+| Platform | File | Note |
+|:---|:---|:---|
+| **macOS** (Apple Silicon) | [Hasher.app.tar.gz](https://github.com/yuman07/Hasher/releases/latest) | Extract, drag to Applications |
+| **Windows** (x64) | [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) | Portable, no install needed |
 
-- **Memory-mapped I/O** (mmap) — zero userspace buffer, OS manages page cache
-- **Parallel threads** — one OS thread per algorithm, up to ~4x speedup on multi-core
-- **Platform-optimized I/O** — `madvise(SEQUENTIAL)` on macOS/Linux, `FILE_FLAG_SEQUENTIAL_SCAN` on Windows
-- **Minimal thread stack** — 256 KB per hash thread (vs 512 KB–8 MB default)
-- **Empty file fast path** — no mmap or thread overhead for 0-byte files
-- **Tiny binary** — ~2.3 MB app bundle
-
-### User Interface
-
-- **Drag & drop or click** — drop files anywhere in the window, or click the drop zone to open a file picker
-- **Multiple files** — process many files at once with real-time progress bars
-- **Dark / Light mode** — auto-detects system preference, manual toggle with smooth animated transition
-- **Chinese / English** — auto-detects system locale, manual toggle
-- **File type icons** — color-coded icons for images, videos, audio, archives, code, documents, executables
-- **Copy with algorithm name** — click copy button to get `SHA-256: abc123...` in clipboard
-- **Collapse / expand** — per-card and global toggle for compact view
-- **Duplicate detection** — re-dropping the same file replaces the old result
-- **Folder rejection** — folders are skipped with a toast notification
-- **macOS Dock drop** — drop files on Dock icon to launch and compute (cold start supported)
-
-### Preferences Persistence
-
-All user preferences are saved to `localStorage` and restored on restart:
-
-| Key | Content | Default |
-|---|---|---|
-| `hasher-settings` | Algorithm toggles | All enabled |
-| `hasher-lang` | Language (en/zh) | System locale |
-| `hasher-theme` | Theme (light/dark) | System preference |
-| `hasher-case` | Hash case (lower/upper) | Lowercase |
-
-## Installation
-
-### macOS
-
-1. Download `Hasher.app.tar.gz` from [Releases](https://github.com/yuman07/Hasher/releases)
-2. Extract and drag `Hasher.app` to Applications
-3. **First launch**: macOS will show a security warning because the app is not signed with an Apple Developer certificate. To open it:
-   - **Option A**: Right-click `Hasher.app` → **Open** → click **Open** in the dialog
-   - **Option B**: Run in Terminal:
-     ```bash
-     xattr -cr /Applications/Hasher.app
-     ```
-
-### Windows
-
-1. Download `Hasher.exe` from [Releases](https://github.com/yuman07/Hasher/releases)
-2. Run directly — no installation required (requires Windows 10+ with WebView2)
+> **macOS first launch**: Right-click `Hasher.app` → **Open** → click **Open**, or run `xattr -cr /Applications/Hasher.app` in Terminal.
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | [Tauri 2](https://tauri.app/) |
-| Backend | Rust (md-5, sha1, sha2, memmap2) |
-| Frontend | Vanilla JS + CSS (no framework) |
-| Build | Vite 6 |
+| | |
+|:---|:---|
+| **Framework** | [Tauri 2](https://tauri.app/) |
+| **Backend** | Rust — md-5, sha1, sha2, memmap2 |
+| **Frontend** | Vanilla JS + CSS (zero framework) |
+| **Build** | Vite 6 |
 
 ## Development
 
-### Prerequisites
-
-- [Rust](https://rustup.rs/) (1.77+)
-- [Node.js](https://nodejs.org/) (20+)
-
-### Run
-
 ```bash
+# Prerequisites: Rust 1.77+, Node.js 20+
+
 npm install
-npx tauri dev
-```
-
-### Build
-
-```bash
-npx tauri build
-```
-
-## Project Structure
-
-```
-Hasher/
-  index.html              # Entry HTML
-  src/
-    main.js               # Frontend logic, i18n, drag-drop, UI
-    styles.css            # All styles, dark/light themes, animations
-  src-tauri/
-    Cargo.toml            # Rust dependencies
-    tauri.conf.json       # Tauri configuration
-    Info.plist            # macOS file association for Dock drop
-    capabilities/
-      default.json        # Tauri permissions
-    src/
-      main.rs             # Rust entry point
-      lib.rs              # Hash computation, mmap, threading, commands
+npx tauri dev       # dev mode
+npx tauri build     # release build
 ```
 
 ## Architecture
@@ -142,4 +91,4 @@ Hasher/
 
 ## License
 
-MIT
+[MIT](LICENSE)
