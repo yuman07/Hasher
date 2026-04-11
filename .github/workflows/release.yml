@@ -15,8 +15,6 @@ permissions:
 jobs:
   build-windows:
     runs-on: windows-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v6
 
@@ -38,7 +36,6 @@ jobs:
         run: copy src-tauri\target\release\hasher.exe Hasher.exe
 
       - name: Upload to release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.inputs.tag || github.event.release.tag_name }}
-          files: Hasher.exe
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} Hasher.exe --clobber
