@@ -39,14 +39,21 @@
 - **Collapse / expand** — per-card and global toggle
 - **macOS Dock drop** — drop files on Dock icon to hash (cold start supported)
 
-## Download
+## Install
 
-| Platform | File | Note |
-|:---|:---|:---|
-| **macOS** (Apple Silicon) | [Hasher.app.tar.gz](https://github.com/yuman07/Hasher/releases/latest) | Extract, drag to Applications |
-| **Windows** (x64) | [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) | Portable, no install needed |
+### macOS (Apple Silicon)
 
-> **macOS first launch**: Right-click `Hasher.app` → **Open** → click **Open**, or run `xattr -cr /Applications/Hasher.app` in Terminal.
+**One-line install:**
+
+```bash
+curl -fsSL https://github.com/yuman07/Hasher/releases/latest/download/Hasher_1.0.0_macos_aarch64.zip -o /tmp/Hasher.zip && unzip -oq /tmp/Hasher.zip -d /tmp/Hasher && cp -rf /tmp/Hasher/Hasher.app /Applications/ && xattr -cr /Applications/Hasher.app && rm -rf /tmp/Hasher /tmp/Hasher.zip && echo "✅ Hasher installed to /Applications"
+```
+
+Or download manually from [Releases](https://github.com/yuman07/Hasher/releases/latest) and drag `Hasher.app` to Applications.
+
+### Windows (x64)
+
+Download [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — portable, no install needed.
 
 ## Tech Stack
 

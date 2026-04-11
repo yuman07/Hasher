@@ -39,14 +39,21 @@
 - **折叠 / 展开** — 支持单个卡片和全局折叠
 - **macOS Dock 拖放** — 拖文件到 Dock 图标直接计算（支持冷启动）
 
-## 下载
+## 安装
 
-| 平台 | 文件 | 说明 |
-|:---|:---|:---|
-| **macOS** (Apple Silicon) | [Hasher.app.tar.gz](https://github.com/yuman07/Hasher/releases/latest) | 解压后拖入「应用程序」 |
-| **Windows** (x64) | [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) | 免安装，双击即用 |
+### macOS (Apple Silicon)
 
-> **macOS 首次启动**：右键点击 `Hasher.app` → **打开** → 在弹窗中点击 **打开**，或在终端执行 `xattr -cr /Applications/Hasher.app`。
+**一键安装：**
+
+```bash
+curl -fsSL https://github.com/yuman07/Hasher/releases/latest/download/Hasher_1.0.0_macos_aarch64.zip -o /tmp/Hasher.zip && unzip -oq /tmp/Hasher.zip -d /tmp/Hasher && cp -rf /tmp/Hasher/Hasher.app /Applications/ && xattr -cr /Applications/Hasher.app && rm -rf /tmp/Hasher /tmp/Hasher.zip && echo "✅ Hasher 已安装到 /Applications"
+```
+
+也可以从 [Releases](https://github.com/yuman07/Hasher/releases/latest) 手动下载，将 `Hasher.app` 拖入「应用程序」文件夹。
+
+### Windows (x64)
+
+下载 [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — 免安装，双击即用。
 
 ## 技术栈
 
