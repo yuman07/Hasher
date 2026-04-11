@@ -30,12 +30,13 @@ jobs:
         run: npm install
 
       - name: Build Tauri (Windows)
-        run: npx tauri build --bundles msi nsis
+        run: npx tauri build --bundles nsis
+
+      - name: Prepare portable exe
+        run: copy src-tauri\target\release\hasher.exe Hasher.exe
 
       - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag || github.event.release.tag_name }}
-          files: |
-            src-tauri/target/release/bundle/msi/*.msi
-            src-tauri/target/release/bundle/nsis/*.exe
+          files: Hasher.exe
