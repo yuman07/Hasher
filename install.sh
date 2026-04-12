@@ -9,7 +9,7 @@ TMP_DIR=$(mktemp -d)
 echo "Fetching latest release..."
 TAG=$(curl -fsSI -o /dev/null -w '%{redirect_url}' "https://github.com/$REPO/releases/latest" | grep -o '[^/]*$')
 VERSION=${TAG#v}
-DMG_NAME="Hasher_${VERSION}_aarch64.dmg"
+DMG_NAME="Hasher_macOS15_arm64_${VERSION}.dmg"
 DMG_URL="https://github.com/$REPO/releases/download/$TAG/$DMG_NAME"
 DMG_FILE="$TMP_DIR/$DMG_NAME"
 

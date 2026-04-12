@@ -77,7 +77,7 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 ### Windows（10+，x64）
 
-下载 [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — 免安装，双击即用。
+从 [Releases](https://github.com/yuman07/Hasher/releases/latest) 下载 `Hasher_Win10_x64_<version>.exe` — 免安装，双击即用。
 
 ## 技术栈
 

@@ -77,7 +77,7 @@ Download the `.dmg` from [Releases](https://github.com/yuman07/Hasher/releases/l
 
 ### Windows (10+, x64)
 
-Download [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — portable, no install needed.
+Download `Hasher_Win10_x64_<version>.exe` from [Releases](https://github.com/yuman07/Hasher/releases/latest) — portable, no install needed.
 
 ## Tech Stack
 

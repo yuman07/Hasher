@@ -34,10 +34,17 @@ jobs:
       - name: Build Tauri (macOS ARM)
         run: npx tauri build --target aarch64-apple-darwin
 
+      - name: Rename artifact
+        run: |
+          VERSION=${TAG#v}
+          cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg Hasher_macOS15_arm64_${VERSION}.dmg
+        env:
+          TAG: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg --clobber
+        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} Hasher_macOS15_arm64_*.dmg --clobber
 
   build-windows:
     runs-on: windows-latest
@@ -58,10 +65,12 @@ jobs:
       - name: Build Tauri (Windows)
         run: npx tauri build --bundles nsis
 
-      - name: Prepare portable exe
-        run: copy src-tauri\target\release\hasher.exe Hasher.exe
+      - name: Rename artifact
+        run: |
+          $VERSION = "${{ github.event.inputs.tag || github.event.release.tag_name }}".TrimStart("v")
+          copy src-tauri\target\release\hasher.exe "Hasher_Win10_x64_${VERSION}.exe"
 
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} Hasher.exe --clobber
+        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} Hasher_Win10_x64_*.exe --clobber
