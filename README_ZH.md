@@ -90,7 +90,7 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 ## 开发
 
-### macOS（15.0 Sequoia+，Apple Silicon）
+### macOS（15.0 Sequoia+，Apple Silicon）— 推荐
 
 ```bash
 # 1. 安装 Xcode Command Line Tools（提供 Rust 和 Tauri 所需的 C/C++ 编译器）
@@ -111,7 +111,7 @@ devbox run -- npx tauri dev       # 开发模式
 devbox run -- npx tauri build     # 构建发布版
 ```
 
-### Windows（10+，x64）
+### Windows（10+，x64）— 由 AI 生成，未经测试
 
 ```powershell
 # 1. 安装 Visual Studio Build Tools（提供 Rust 和 Tauri 所需的 C/C++ 编译器）

@@ -90,7 +90,7 @@ Download [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — por
 
 ## Development
 
-### macOS (15.0 Sequoia+, Apple Silicon)
+### macOS (15.0 Sequoia+, Apple Silicon) — Recommended
 
 ```bash
 # 1. Install Xcode Command Line Tools (provides C/C++ compiler required by Rust and Tauri)
@@ -111,7 +111,7 @@ devbox run -- npx tauri dev       # dev mode
 devbox run -- npx tauri build     # release build
 ```
 
-### Windows (10+, x64)
+### Windows (10+, x64) — AI-generated, not tested
 
 ```powershell
 # 1. Install Visual Studio Build Tools (provides C/C++ compiler required by Rust and Tauri)
