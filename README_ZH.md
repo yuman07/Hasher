@@ -119,7 +119,7 @@ devbox run -- npx tauri build     # 构建发布版
 
 ## 技术概览
 
-| | |
+| 组件 | 技术 |
 |:---|:---|
 | **框架** | [Tauri 2](https://tauri.app/) |
 | **后端** | Rust — md-5, sha1, sha2, memmap2 |
