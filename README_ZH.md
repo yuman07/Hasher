@@ -94,11 +94,12 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 | | macOS | Windows |
 |:---|:---|:---|
-| **Rust** | [rustup.rs](https://rustup.rs/) (1.85+) | [rustup.rs](https://rustup.rs/) (1.85+) |
-| **Node.js** | [Devbox](https://www.jetify.com/devbox)（推荐）或 [Node.js 24+](https://nodejs.org/) | [Node.js 24+](https://nodejs.org/) |
+| **Devbox** | [安装](https://www.jetify.com/devbox) — 统一管理 Rust 和 Node.js | — |
+| **Rust** | 由 Devbox 管理 | [rustup.rs](https://rustup.rs/) (1.85+) |
+| **Node.js** | 由 Devbox 管理 | [Node.js 24+](https://nodejs.org/) |
 | **C++ 工具链** | Xcode Command Line Tools | [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)（C++ 工作负载） |
 
-### macOS（使用 Devbox）
+### macOS
 
 ```bash
 devbox run -- npm install
@@ -106,7 +107,7 @@ devbox run -- npx tauri dev       # 开发模式
 devbox run -- npx tauri build     # 构建发布版
 ```
 
-### macOS（不使用 Devbox）/ Windows
+### Windows
 
 ```bash
 npm install
