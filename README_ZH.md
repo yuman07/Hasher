@@ -92,7 +92,7 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 ## 开发
 
-### macOS（15.0 Sequoia+，Apple Silicon）— 推荐
+### macOS（15.6 Sequoia+，Apple Silicon）— 推荐
 
 ```bash
 # 1. 安装 Xcode Command Line Tools（提供 Rust 和 Tauri 所需的 C/C++ 编译器）
