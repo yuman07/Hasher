@@ -2,13 +2,13 @@
 set -e
 
 REPO="yuman07/Hasher"
-APP_NAME="Hasher.app"
 INSTALL_DIR="/Applications"
 TMP_DIR=$(mktemp -d)
 
 echo "Fetching latest release..."
 TAG=$(curl -fsSI -o /dev/null -w '%{redirect_url}' "https://github.com/$REPO/releases/latest" | grep -o '[^/]*$')
-DMG_NAME=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/tags/$TAG" | grep -o '"name": *"Hasher_macOS[^"]*arm64[^"]*\.dmg"' | head -1 | cut -d'"' -f4)
+DMG_NAME=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/tags/$TAG" | grep -o '"name": *"[^"]*_macOS[^"]*\.dmg"' | head -1 | cut -d'"' -f4)
+APP_NAME="$(echo "$DMG_NAME" | cut -d'_' -f1).app"
 DMG_URL="https://github.com/$REPO/releases/download/$TAG/$DMG_NAME"
 DMG_FILE="$TMP_DIR/$DMG_NAME"
 
