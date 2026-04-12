@@ -99,10 +99,14 @@ xcode-select --install
 # 2. 安装 Devbox（自动管理 Rust 和 Node.js）
 curl -fsSL https://get.jetify.com/devbox | bash
 
-# 3. 安装前端依赖
+# 3. 克隆仓库并进入项目目录
+git clone https://github.com/yuman07/Hasher.git
+cd Hasher
+
+# 4. 安装前端依赖
 devbox run -- npm install
 
-# 4. 运行或构建
+# 5. 运行或构建
 devbox run -- npx tauri dev       # 开发模式
 devbox run -- npx tauri build     # 构建发布版
 ```
@@ -120,10 +124,14 @@ devbox run -- npx tauri build     # 构建发布版
 # 3. 安装 Node.js 24+
 #    从 https://nodejs.org/ 下载并运行安装程序
 
-# 4. 安装前端依赖
+# 4. 克隆仓库并进入项目目录
+git clone https://github.com/yuman07/Hasher.git
+cd Hasher
+
+# 5. 安装前端依赖
 npm install
 
-# 5. 运行或构建
+# 6. 运行或构建
 npx tauri dev       # 开发模式
 npx tauri build     # 构建发布版
 ```

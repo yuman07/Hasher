@@ -99,10 +99,14 @@ xcode-select --install
 # 2. Install Devbox (manages Rust & Node.js automatically)
 curl -fsSL https://get.jetify.com/devbox | bash
 
-# 3. Install frontend dependencies
+# 3. Clone the repository and enter the project directory
+git clone https://github.com/yuman07/Hasher.git
+cd Hasher
+
+# 4. Install frontend dependencies
 devbox run -- npm install
 
-# 4. Run or build
+# 5. Run or build
 devbox run -- npx tauri dev       # dev mode
 devbox run -- npx tauri build     # release build
 ```
@@ -120,10 +124,14 @@ devbox run -- npx tauri build     # release build
 # 3. Install Node.js 24+
 #    Download and run the installer from https://nodejs.org/
 
-# 4. Install frontend dependencies
+# 4. Clone the repository and enter the project directory
+git clone https://github.com/yuman07/Hasher.git
+cd Hasher
+
+# 5. Install frontend dependencies
 npm install
 
-# 5. Run or build
+# 6. Run or build
 npx tauri dev       # dev mode
 npx tauri build     # release build
 ```
