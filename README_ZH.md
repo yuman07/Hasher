@@ -114,7 +114,7 @@ devbox run -- npx tauri build     # 构建发布版
 #    从 https://visualstudio.microsoft.com/visual-cpp-build-tools/ 下载
 #    安装时选择「使用 C++ 的桌面开发」工作负载
 
-# 2. 安装 Rust
+# 2. 安装 Rust（rustup 会通过 rust-toolchain.toml 自动选择正确版本）
 #    从 https://rustup.rs/ 下载并运行安装程序
 
 # 3. 安装 Node.js 24+

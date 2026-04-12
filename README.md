@@ -114,7 +114,7 @@ devbox run -- npx tauri build     # release build
 #    Download from https://visualstudio.microsoft.com/visual-cpp-build-tools/
 #    Select "Desktop development with C++" workload during installation
 
-# 2. Install Rust
+# 2. Install Rust (rustup will auto-select the correct version via rust-toolchain.toml)
 #    Download and run the installer from https://rustup.rs/
 
 # 3. Install Node.js 24+
