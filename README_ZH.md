@@ -154,44 +154,75 @@ Hasher 是一个 [Tauri 2](https://tauri.app/) 混合应用——Rust 后端负�
 
 ### 架构
 
+```mermaid
+graph LR
+    subgraph FE["前端 · 原生 JS + CSS"]
+        DZ["拖放区 / 文件选择器"]
+        UI["UI 渲染器"]
+        LS["localStorage"]
+    end
+
+    subgraph BE["后端 · Rust"]
+        IPC["Tauri IPC 命令"]
+        IO["open_for_hashing()"]
+        MM["memmap2 映射"]
+        subgraph TH["并行线程 · 256 KB 栈"]
+            T1["MD5"]
+            T2["SHA-1"]
+            T3["SHA-256"]
+            T4["SHA-512"]
+        end
+        AC["AtomicU64 计数器"]
+        PF["PendingFiles 缓冲"]
+    end
+
+    DZ -->|"invoke(compute_hashes)"| IPC
+    IPC -->|"平台特定打开方式"| IO
+    IO -->|"顺序读取提示"| MM
+    MM -->|"共享只读 mmap"| T1
+    MM -->|"共享只读 mmap"| T2
+    MM -->|"共享只读 mmap"| T3
+    MM -->|"共享只读 mmap"| T4
+    T1 -->|"2 MB 块计数"| AC
+    T2 -->|"2 MB 块计数"| AC
+    T3 -->|"2 MB 块计数"| AC
+    T4 -->|"2 MB 块计数"| AC
+    AC -->|"emit(hash-progress) / 50 ms"| UI
+    IPC -->|"返回 HashResult[]"| UI
+    UI <-.->|"自动持久化偏好"| LS
+    PF -.->|"macOS Dock 拖放缓冲"| DZ
 ```
-  前端 (JS)                              后端 (Rust)
-  ────────                               ──────────
-  拖放 / 选择文件      ──invoke──>       open_for_hashing()
-                                           │
-  监听进度事件         <──emit───        mmap 映射文件
-  更新 UI                                  │
-                                         每种算法一个线程：
-                                           ├─ MD5    ─┐
-                                           ├─ SHA-1  ─┤ AtomicU64
-                                           ├─ SHA-256 ┤ 进度计数器
-                                           └─ SHA-512 ┘
-                                           │
-  接收结果             <──return──       收集 hex 结果
-```
+
+- **主数据流** — 用户将文件拖入拖放区，前端 `invoke()` 调用 Rust 后端。后端以操作系统级顺序读取提示打开文件、内存映射一次后分发给并行哈希线程。进度通过 50 ms 事件轮询回传 UI；最终结果以 `HashResult[]` 返回
+- **共享 mmap 设计** — 所有哈希线程读取同一个只读内存映射。一个 1 GB 的文件只映射一次（而非 4 次），操作系统页面缓存为每种算法提供数据，无冗余 I/O
+- **Dock 拖放缓冲** — `PendingFiles` 互斥锁处理 macOS 在前端 webview 就绪前发送 `RunEvent::Opened` 的竞态条件。路径缓存在 Rust 端，前端初始化时通过 `take_pending_files()` 取回
+- **偏好持久化** — 主题、语言、算法选择和哈希大小写存储在 `localStorage`，每次启动自动恢复，与 Rust 后端解耦
 
 ### 项目结构
 
 ```
 Hasher/
-├── src/                    # 前端
-│   ├── main.js             # 应用逻辑、国际化、UI 渲染
-│   └── styles.css          # 主题、布局、动画
-├── src-tauri/
-│   ├── src/
-│   │   ├── main.rs         # 入口
-│   │   └── lib.rs          # 哈希引擎、IPC 命令
-│   ├── icons/              # 应用图标（icns、ico、png）
-│   ├── Info.plist          # macOS 元数据
-│   ├── Cargo.toml          # Rust 依赖
-│   └── tauri.conf.json     # Tauri 配置（窗口、打包）
-├── index.html              # HTML 入口，内嵌 SVG 图标
-├── vite.config.js          # Vite 开发服务器配置
-├── package.json            # 前端依赖
-├── devbox.json             # Devbox 环境（Rust、Node.js）
-├── build-meta.json         # Windows 构建命名元数据
-├── install.sh              # macOS 一键安装脚本
-└── rust-toolchain.toml     # Rust stable 版本锁定
+|-- .github/
+|   `-- workflows/
+|       `-- release.yml         # CI：发布时构建 macOS 和 Windows
+|-- src/                        # 前端
+|   |-- main.js                 # 应用逻辑、国际化、UI 渲染
+|   `-- styles.css              # 主题、布局、动画
+|-- src-tauri/
+|   |-- src/
+|   |   |-- main.rs             # 入口
+|   |   `-- lib.rs              # 哈希引擎、IPC 命令
+|   |-- icons/                  # 应用图标（icns、ico、png）
+|   |-- Info.plist              # macOS 元数据
+|   |-- Cargo.toml              # Rust 依赖
+|   `-- tauri.conf.json         # Tauri 配置（窗口、打包）
+|-- index.html                  # HTML 入口，内嵌 SVG 图标
+|-- vite.config.js              # Vite 开发服务器配置
+|-- package.json                # 前端依赖
+|-- devbox.json                 # Devbox 环境（Rust、Node.js）
+|-- build-meta.json             # Windows 构建命名元数据
+|-- install.sh                  # macOS 一键安装脚本
+`-- rust-toolchain.toml         # Rust stable 版本锁定
 ```
 
 ## 许可证

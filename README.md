@@ -154,44 +154,75 @@ The frontend is zero-framework vanilla JS + CSS to keep the binary small (~2.3 M
 
 ### Architecture
 
+```mermaid
+graph LR
+    subgraph FE["Frontend · Vanilla JS + CSS"]
+        DZ["Drop Zone / File Picker"]
+        UI["UI Renderer"]
+        LS["localStorage"]
+    end
+
+    subgraph BE["Backend · Rust"]
+        IPC["Tauri IPC Commands"]
+        IO["open_for_hashing()"]
+        MM["memmap2 Mapping"]
+        subgraph TH["Parallel Threads · 256 KB stack"]
+            T1["MD5"]
+            T2["SHA-1"]
+            T3["SHA-256"]
+            T4["SHA-512"]
+        end
+        AC["AtomicU64 Counter"]
+        PF["PendingFiles Buffer"]
+    end
+
+    DZ -->|"invoke(compute_hashes)"| IPC
+    IPC -->|"platform-specific open"| IO
+    IO -->|"sequential-scan hint"| MM
+    MM -->|"shared read-only mmap"| T1
+    MM -->|"shared read-only mmap"| T2
+    MM -->|"shared read-only mmap"| T3
+    MM -->|"shared read-only mmap"| T4
+    T1 -->|"2 MB chunk count"| AC
+    T2 -->|"2 MB chunk count"| AC
+    T3 -->|"2 MB chunk count"| AC
+    T4 -->|"2 MB chunk count"| AC
+    AC -->|"emit(hash-progress) / 50 ms"| UI
+    IPC -->|"return HashResult[]"| UI
+    UI <-.->|"auto-persist preferences"| LS
+    PF -.->|"macOS Dock drop on init"| DZ
 ```
-  Frontend (JS)                         Backend (Rust)
-  ─────────────                         ──────────────
-  Drop / select file   ──invoke──>      open_for_hashing()
-                                          │
-  Listen progress      <──emit───       mmap file
-  event & update UI                       │
-                                        spawn thread per algo:
-                                          ├─ MD5    ─┐
-                                          ├─ SHA-1  ─┤ AtomicU64
-                                          ├─ SHA-256 ┤ progress
-                                          └─ SHA-512 ┘ counter
-                                          │
-  Receive results      <──return──      collect hex results
-```
+
+- **Main data flow** — user drops files into the Drop Zone, which `invoke()`s the Rust backend. The backend opens the file with OS-level sequential hints, memory-maps it once, and fans out to parallel hash threads. Progress flows back to the UI via 50 ms event polling; final results are returned as `HashResult[]`
+- **Shared mmap design** — all hash threads read from the same read-only memory mapping. This means a 1 GB file is mapped once (not 4 times), and the OS page cache serves every algorithm without redundant I/O
+- **Dock drop buffer** — the `PendingFiles` mutex handles the race condition where macOS delivers `RunEvent::Opened` before the frontend webview is ready. Paths are buffered in Rust and drained by the frontend on init via `take_pending_files()`
+- **Preference persistence** — theme, language, algorithm selection, and hash case are stored in `localStorage` and restored on every launch, decoupled from the Rust backend
 
 ### Project structure
 
 ```
 Hasher/
-├── src/                    # Frontend
-│   ├── main.js             # App logic, i18n, UI rendering
-│   └── styles.css          # Themes, layout, animations
-├── src-tauri/
-│   ├── src/
-│   │   ├── main.rs         # Entry point
-│   │   └── lib.rs          # Hashing engine, IPC commands
-│   ├── icons/              # App icons (icns, ico, png)
-│   ├── Info.plist          # macOS metadata
-│   ├── Cargo.toml          # Rust dependencies
-│   └── tauri.conf.json     # Tauri config (window, bundle)
-├── index.html              # HTML shell with embedded SVG icons
-├── vite.config.js          # Vite dev server config
-├── package.json            # Frontend dependencies
-├── devbox.json             # Devbox environment (Rust, Node.js)
-├── build-meta.json         # Windows build naming metadata
-├── install.sh              # macOS one-click install script
-└── rust-toolchain.toml     # Rust stable channel pin
+|-- .github/
+|   `-- workflows/
+|       `-- release.yml         # CI: build macOS & Windows on release
+|-- src/                        # Frontend
+|   |-- main.js                 # App logic, i18n, UI rendering
+|   `-- styles.css              # Themes, layout, animations
+|-- src-tauri/
+|   |-- src/
+|   |   |-- main.rs             # Entry point
+|   |   `-- lib.rs              # Hashing engine, IPC commands
+|   |-- icons/                  # App icons (icns, ico, png)
+|   |-- Info.plist              # macOS metadata
+|   |-- Cargo.toml              # Rust dependencies
+|   `-- tauri.conf.json         # Tauri config (window, bundle)
+|-- index.html                  # HTML shell with embedded SVG icons
+|-- vite.config.js              # Vite dev server config
+|-- package.json                # Frontend dependencies
+|-- devbox.json                 # Devbox environment (Rust, Node.js)
+|-- build-meta.json             # Windows build naming metadata
+|-- install.sh                  # macOS one-click install script
+`-- rust-toolchain.toml         # Rust stable channel pin
 ```
 
 ## License
