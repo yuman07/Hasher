@@ -37,14 +37,15 @@ jobs:
       - name: Rename artifact
         run: |
           VERSION=${TAG#v}
-          cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg Hasher_macOS15_arm64_${VERSION}.dmg
+          MIN_MACOS=$(python3 -c "import json; print(json.load(open('src-tauri/tauri.conf.json'))['bundle']['macOS']['minimumSystemVersion'].split('.')[0])")
+          cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "Hasher_macOS${MIN_MACOS}_arm64_${VERSION}.dmg"
         env:
           TAG: ${{ github.event.inputs.tag || github.event.release.tag_name }}
 
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} Hasher_macOS15_arm64_*.dmg --clobber
+        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} Hasher_macOS*_arm64_*.dmg --clobber
 
   build-windows:
     runs-on: windows-latest
