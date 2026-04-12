@@ -41,7 +41,7 @@
 
 ## 安装
 
-### macOS (Apple Silicon)
+### macOS（15.0 Sequoia+，Apple Silicon）
 
 **一键安装（推荐）：**
 
@@ -75,7 +75,7 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 >
 > 以上操作只需执行一次，之后即可正常打开。
 
-### Windows (x64)
+### Windows（10+，x64）
 
 下载 [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — 免安装，双击即用。
 

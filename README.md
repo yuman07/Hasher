@@ -41,7 +41,7 @@
 
 ## Install
 
-### macOS (Apple Silicon)
+### macOS (15.0 Sequoia+, Apple Silicon)
 
 **Quick install (recommended):**
 
@@ -75,7 +75,7 @@ Download the `.dmg` from [Releases](https://github.com/yuman07/Hasher/releases/l
 >
 > You only need to do this once. After the first successful launch, macOS will remember your choice.
 
-### Windows (x64)
+### Windows (10+, x64)
 
 Download [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — portable, no install needed.
 
