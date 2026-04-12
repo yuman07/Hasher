@@ -79,6 +79,8 @@ Download the `.dmg` from [Releases](https://github.com/yuman07/Hasher/releases/l
 
 Download `Hasher_Win10_x64_<version>.exe` from [Releases](https://github.com/yuman07/Hasher/releases/latest) — portable, no install needed.
 
+> **Note:** This app is not code-signed. Windows SmartScreen may show a warning saying *"Windows protected your PC"* on first launch. Click **"More info"** then **"Run anyway"** to proceed. This only happens once.
+
 ## Tech Stack
 
 | | |
