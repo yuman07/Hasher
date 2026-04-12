@@ -90,24 +90,28 @@ Download [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — por
 
 ## Development
 
-### Prerequisites
-
-| | macOS | Windows |
-|:---|:---|:---|
-| **Devbox** | [Install](https://www.jetify.com/devbox) — manages Rust & Node.js | — |
-| **Rust** | Managed by Devbox | [rustup.rs](https://rustup.rs/) (1.85+) |
-| **Node.js** | Managed by Devbox | [Node.js 24+](https://nodejs.org/) |
-| **C++ toolchain** | Xcode Command Line Tools | [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (C++ workload) |
-
 ### macOS
 
 ```bash
+# 1. Install Xcode Command Line Tools (provides C/C++ compiler)
+xcode-select --install
+
+# 2. Install Devbox (manages Rust & Node.js)
+curl -fsSL https://get.jetify.com/devbox | bash
+
+# 3. Build
 devbox run -- npm install
 devbox run -- npx tauri dev       # dev mode
 devbox run -- npx tauri build     # release build
 ```
 
 ### Windows
+
+Install the following manually, then run the build commands:
+
+- [Rust 1.85+](https://rustup.rs/)
+- [Node.js 24+](https://nodejs.org/)
+- [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (C++ workload)
 
 ```bash
 npm install

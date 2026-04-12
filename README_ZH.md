@@ -90,24 +90,28 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 ## 开发
 
-### 前置条件
-
-| | macOS | Windows |
-|:---|:---|:---|
-| **Devbox** | [安装](https://www.jetify.com/devbox) — 统一管理 Rust 和 Node.js | — |
-| **Rust** | 由 Devbox 管理 | [rustup.rs](https://rustup.rs/) (1.85+) |
-| **Node.js** | 由 Devbox 管理 | [Node.js 24+](https://nodejs.org/) |
-| **C++ 工具链** | Xcode Command Line Tools | [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)（C++ 工作负载） |
-
 ### macOS
 
 ```bash
+# 1. 安装 Xcode Command Line Tools（提供 C/C++ 编译器）
+xcode-select --install
+
+# 2. 安装 Devbox（统一管理 Rust 和 Node.js）
+curl -fsSL https://get.jetify.com/devbox | bash
+
+# 3. 构建
 devbox run -- npm install
 devbox run -- npx tauri dev       # 开发模式
 devbox run -- npx tauri build     # 构建发布版
 ```
 
 ### Windows
+
+先手动安装以下依赖，然后执行构建命令：
+
+- [Rust 1.85+](https://rustup.rs/)
+- [Node.js 24+](https://nodejs.org/)
+- [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)（C++ 工作负载）
 
 ```bash
 npm install
