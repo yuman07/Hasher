@@ -93,14 +93,16 @@ Download [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — por
 ### macOS
 
 ```bash
-# 1. Install Xcode Command Line Tools (provides C/C++ compiler)
+# 1. Install Xcode Command Line Tools (provides C/C++ compiler required by Rust and Tauri)
 xcode-select --install
 
-# 2. Install Devbox (manages Rust & Node.js)
+# 2. Install Devbox (manages Rust & Node.js automatically)
 curl -fsSL https://get.jetify.com/devbox | bash
 
-# 3. Build
+# 3. Install frontend dependencies
 devbox run -- npm install
+
+# 4. Run or build
 devbox run -- npx tauri dev       # dev mode
 devbox run -- npx tauri build     # release build
 ```

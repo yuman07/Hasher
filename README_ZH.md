@@ -93,14 +93,16 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 ### macOS
 
 ```bash
-# 1. 安装 Xcode Command Line Tools（提供 C/C++ 编译器）
+# 1. 安装 Xcode Command Line Tools（提供 Rust 和 Tauri 所需的 C/C++ 编译器）
 xcode-select --install
 
-# 2. 安装 Devbox（统一管理 Rust 和 Node.js）
+# 2. 安装 Devbox（自动管理 Rust 和 Node.js）
 curl -fsSL https://get.jetify.com/devbox | bash
 
-# 3. 构建
+# 3. 安装前端依赖
 devbox run -- npm install
+
+# 4. 运行或构建
 devbox run -- npx tauri dev       # 开发模式
 devbox run -- npx tauri build     # 构建发布版
 ```
