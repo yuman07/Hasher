@@ -37,15 +37,16 @@ jobs:
       - name: Rename artifact
         run: |
           VERSION=${TAG#v}
-          MIN_MACOS=$(python3 -c "import json; print(json.load(open('src-tauri/tauri.conf.json'))['bundle']['macOS']['minimumSystemVersion'].split('.')[0])")
-          cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "Hasher_macOS${MIN_MACOS}_arm64_${VERSION}.dmg"
+          APP_NAME=$(python3 -c "import json; c=json.load(open('src-tauri/tauri.conf.json')); print(c['productName'])")
+          MIN_MACOS=$(python3 -c "import json; c=json.load(open('src-tauri/tauri.conf.json')); print(c['bundle']['macOS']['minimumSystemVersion'].split('.')[0])")
+          cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "${APP_NAME}_macOS${MIN_MACOS}_arm64_${VERSION}.dmg"
         env:
           TAG: ${{ github.event.inputs.tag || github.event.release.tag_name }}
 
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} Hasher_macOS*_arm64_*.dmg --clobber
+        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} *_macOS*_arm64_*.dmg --clobber
 
   build-windows:
     runs-on: windows-latest
@@ -69,12 +70,14 @@ jobs:
       - name: Rename artifact
         run: |
           $VERSION = "${{ github.event.inputs.tag || github.event.release.tag_name }}".TrimStart("v")
+          $CONF = Get-Content src-tauri\tauri.conf.json | ConvertFrom-Json
+          $APP_NAME = $CONF.productName
           $META = Get-Content build-meta.json | ConvertFrom-Json
           $MIN_WIN = $META.windows.minVersion
           $ARCH = $META.windows.arch
-          copy src-tauri\target\release\hasher.exe "Hasher_${MIN_WIN}_${ARCH}_${VERSION}.exe"
+          copy src-tauri\target\release\$($APP_NAME.ToLower()).exe "${APP_NAME}_${MIN_WIN}_${ARCH}_${VERSION}.exe"
 
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} Hasher_*_*_*.exe --clobber
+        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} *_Win*_*_*.exe --clobber
