@@ -1,49 +1,57 @@
+<p align="center"><img src="src-tauri/icons/128x128@2x.png" width="128" height="128"></p>
+
 <h1 align="center">Hasher</h1>
 
-<p align="center">
-  <strong>Fast, lightweight file hash checker built with Tauri 2 + Rust</strong>
-</p>
+<p align="center"><strong>Fast, lightweight file hash checker built with Tauri 2 + Rust</strong></p>
 
 <p align="center">
   <a href="https://github.com/yuman07/Hasher/releases"><img src="https://img.shields.io/github/v/release/yuman07/Hasher?style=flat-square&color=blue" alt="Release" /></a>
-  <a href="https://github.com/yuman07/Hasher/blob/main/LICENSE"><img src="https://img.shields.io/github/license/yuman07/Hasher?style=flat-square" alt="License" /></a>
   <a href="https://github.com/yuman07/Hasher/releases"><img src="https://img.shields.io/github/downloads/yuman07/Hasher/total?style=flat-square&color=green" alt="Downloads" /></a>
-  <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey?style=flat-square" alt="Platform" />
+  <a href="https://github.com/yuman07/Hasher/stargazers"><img src="https://img.shields.io/github/stars/yuman07/Hasher?style=flat-square" alt="Stars" /></a>
+  <br>
+  <img src="https://img.shields.io/badge/macOS-15.0%2B%20Apple%20Silicon-000?style=flat-square&logo=apple" alt="macOS" />
+  <img src="https://img.shields.io/badge/Windows-10%2B%20x64-0078D4?style=flat-square&logo=windows" alt="Windows" />
+  <img src="https://img.shields.io/badge/Rust-stable-orange?style=flat-square&logo=rust" alt="Rust" />
+  <a href="https://github.com/yuman07/Hasher/blob/main/LICENSE"><img src="https://img.shields.io/github/license/yuman07/Hasher?style=flat-square" alt="License" /></a>
 </p>
 
 <p align="center">
-  <a href="./README_ZH.md">中文文档</a>
+  <a href="README.md">English</a> | <a href="README_ZH.md">中文</a>
 </p>
 
 ---
 
-<p align="center">
-  <img src="screenshots/1.png" width="49%" />
-  <img src="screenshots/2.png" width="49%" />
-</p>
-<p align="center">
-  <img src="screenshots/3.png" width="49%" />
-  <img src="screenshots/4.png" width="49%" />
-</p>
+## What is Hasher?
+
+Hasher is a desktop application that computes cryptographic file hashes instantly. Drop any file into the window and get MD5, SHA-1, SHA-256, and SHA-512 checksums — useful for verifying downloads, comparing files, or checking data integrity. Built with Tauri 2 and Rust for minimal resource usage (~2.3 MB binary).
 
 ## Features
 
-- **Algorithms** — MD5 / SHA-1 / SHA-256 / SHA-512, toggle any combination in settings
+- **Multiple algorithms** — MD5 / SHA-1 / SHA-256 / SHA-512, toggle any combination in settings
 - **Drag & drop or click** — drop files into the window or click to open a file picker
 - **Batch processing** — handle multiple files at once with real-time progress bars
 - **Parallel & fast** — one thread per algorithm, memory-mapped I/O, ~2.3 MB binary
-- **Dark / Light mode** — follows system preference, smooth animated toggle
+- **Dark / Light mode** — follows system preference with smooth animated toggle
 - **Chinese / English** — auto-detects system locale
 - **One-click copy** — copies `SHA-256: abc123...` to clipboard
 - **File type icons** — color-coded by category
 - **Collapse / expand** — per-card and global toggle
 - **macOS Dock drop** — drop files on Dock icon to hash (cold start supported)
 
+<p align="center">
+  <img src="Screenshots/1.png" width="49%" />
+  <img src="Screenshots/2.png" width="49%" />
+</p>
+<p align="center">
+  <img src="Screenshots/3.png" width="49%" />
+  <img src="Screenshots/4.png" width="49%" />
+</p>
+
 ## Install
 
 ### macOS (15.0 Sequoia+, Apple Silicon)
 
-**Quick install (recommended):**
+#### Option 1 — Quick install (recommended)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | bash
@@ -51,7 +59,7 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 The script automatically downloads the latest version, installs it to `/Applications`, and removes the quarantine flag so it opens without issues.
 
-**Manual install:**
+#### Option 2 — Manual install
 
 Download the `.dmg` from [Releases](https://github.com/yuman07/Hasher/releases/latest), open it, and drag `Hasher.app` to Applications.
 
@@ -81,18 +89,14 @@ Download `Hasher_Win10_x64_<version>.exe` from [Releases](https://github.com/yum
 
 > **Note:** This app is not code-signed. Windows SmartScreen may show a warning saying *"Windows protected your PC"* on first launch. Click **"More info"** then **"Run anyway"** to proceed. This only happens once.
 
-## Tech Stack
-
-| | |
-|:---|:---|
-| **Framework** | [Tauri 2](https://tauri.app/) |
-| **Backend** | Rust — md-5, sha1, sha2, memmap2 |
-| **Frontend** | Vanilla JS + CSS (zero framework) |
-| **Build** | Vite 8 |
-
 ## Development
 
-### macOS (15.6 Sequoia+, Apple Silicon) — Recommended
+> Only macOS build steps are provided.
+
+**Prerequisites:**
+
+- macOS 15.6 Sequoia or later (Apple Silicon)
+- Xcode Command Line Tools 26.0 or later
 
 ```bash
 # 1. Install Xcode Command Line Tools (provides C/C++ compiler required by Rust and Tauri)
@@ -108,37 +112,20 @@ cd Hasher
 # 4. Install frontend dependencies
 devbox run -- npm install
 
-# 5. Run or build
+# 5. Run in dev mode or build for release
 devbox run -- npx tauri dev       # dev mode
 devbox run -- npx tauri build     # release build
 ```
 
-### Windows (10+, x64) — AI-generated, not tested
+## Technical Overview
 
-```powershell
-# 1. Install Visual Studio Build Tools (provides C/C++ compiler required by Rust and Tauri)
-#    Download from https://visualstudio.microsoft.com/visual-cpp-build-tools/
-#    Select "Desktop development with C++" workload during installation
-
-# 2. Install Rust (rustup will auto-select the correct version via rust-toolchain.toml)
-#    Download and run the installer from https://rustup.rs/
-
-# 3. Install Node.js 24+
-#    Download and run the installer from https://nodejs.org/
-
-# 4. Clone the repository and enter the project directory
-git clone https://github.com/yuman07/Hasher.git
-cd Hasher
-
-# 5. Install frontend dependencies
-npm install
-
-# 6. Run or build
-npx tauri dev       # dev mode
-npx tauri build     # release build
-```
-
-## Architecture
+| | |
+|:---|:---|
+| **Framework** | [Tauri 2](https://tauri.app/) |
+| **Backend** | Rust — md-5, sha1, sha2, memmap2 |
+| **Frontend** | Vanilla JS + CSS (zero framework) |
+| **Build** | Vite 8 |
+| **Runtime** | Node.js 24 |
 
 ```
   Frontend (JS)                         Backend (Rust)
@@ -154,6 +141,28 @@ npx tauri build     # release build
                                           └─ SHA-512 ┘ counter
                                           │
   Receive results      <──return──      collect hex results
+```
+
+```
+Hasher/
+├── src/                    # Frontend
+│   ├── main.js             # App logic, i18n, UI rendering
+│   └── styles.css          # Themes, layout, animations
+├── src-tauri/
+│   ├── src/
+│   │   ├── main.rs         # Entry point
+│   │   └── lib.rs          # Hashing engine, IPC commands
+│   ├── icons/              # App icons (icns, ico, png)
+│   ├── Info.plist          # macOS metadata
+│   ├── Cargo.toml          # Rust dependencies
+│   └── tauri.conf.json     # Tauri config (window, bundle)
+├── index.html              # HTML shell with embedded SVG icons
+├── vite.config.js          # Vite dev server config
+├── package.json            # Frontend dependencies
+├── devbox.json             # Devbox environment (Rust, Node.js)
+├── build-meta.json         # Windows build naming metadata
+├── install.sh              # macOS one-click install script
+└── rust-toolchain.toml     # Rust stable channel pin
 ```
 
 ## License
