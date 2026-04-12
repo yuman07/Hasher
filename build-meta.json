@@ -1,0 +1,6 @@
+{
+  "windows": {
+    "minVersion": "Win10",
+    "arch": "x64"
+  }
+}

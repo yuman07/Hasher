@@ -69,9 +69,12 @@ jobs:
       - name: Rename artifact
         run: |
           $VERSION = "${{ github.event.inputs.tag || github.event.release.tag_name }}".TrimStart("v")
-          copy src-tauri\target\release\hasher.exe "Hasher_Win10_x64_${VERSION}.exe"
+          $META = Get-Content build-meta.json | ConvertFrom-Json
+          $MIN_WIN = $META.windows.minVersion
+          $ARCH = $META.windows.arch
+          copy src-tauri\target\release\hasher.exe "Hasher_${MIN_WIN}_${ARCH}_${VERSION}.exe"
 
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} Hasher_Win10_x64_*.exe --clobber
+        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} Hasher_*_*_*.exe --clobber
