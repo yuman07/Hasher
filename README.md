@@ -90,7 +90,7 @@ Download [Hasher.exe](https://github.com/yuman07/Hasher/releases/latest) — por
 
 ## Development
 
-### macOS
+### macOS (14.0 Sonoma+, Apple Silicon)
 
 ```bash
 # 1. Install Xcode Command Line Tools (provides C/C++ compiler required by Rust and Tauri)
