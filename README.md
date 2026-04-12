@@ -119,6 +119,31 @@ devbox run -- npx tauri build     # release build
 
 ## Technical Overview
 
+Hasher is a [Tauri 2](https://tauri.app/) hybrid app — a Rust backend handles all file I/O and cryptographic computation, while a vanilla JS frontend manages the UI. The two sides communicate through Tauri's IPC bridge: the frontend `invoke()`s Rust commands, and the backend `emit()`s events back.
+
+### How hashing works
+
+When files are dropped (or selected), the frontend calls the `compute_hashes` command for each file. The backend then:
+
+1. **Opens the file** with platform-specific sequential-read hints (`FILE_FLAG_SEQUENTIAL_SCAN` on Windows, `madvise(SEQUENTIAL)` on Unix) to tell the OS to prefetch aggressively and release pages early.
+2. **Memory-maps the file** via `memmap2` — zero user-space buffering, the OS page cache serves data directly to the hash functions.
+3. **Spawns one OS thread per selected algorithm** (up to 4). All threads share the same read-only mmap, so the file is only mapped once regardless of how many algorithms run. Each thread has a 256 KB stack (hash state needs < 2 KB; the platform default of 512 KB–8 MB would be wasteful).
+4. **Tracks progress** with a single `AtomicU64` counter. Every thread bumps it after each 2 MB chunk. The calling thread polls this counter every 50 ms and emits a `hash-progress` event to the frontend, which updates the progress bar.
+5. **Returns results** once all threads finish. Hex encoding uses a precomputed lookup table for speed.
+
+Empty files are fast-pathed — their well-known hashes are computed inline without threads or mmap.
+
+### Frontend design
+
+The frontend is zero-framework vanilla JS + CSS to keep the binary small (~2.3 MB total). Key design choices:
+
+- **i18n** — a flat `messages` object with `en`/`zh` keys; system locale is auto-detected via `navigator.language`, with manual toggle.
+- **Theming** — CSS variables drive light/dark mode. A synchronous `<script>` in `<head>` applies the saved theme before first paint to prevent flash. Toggle animations use a 350 ms CSS transition.
+- **State** — a single `state` object holds the file map, settings, language, and theme. User preferences persist to `localStorage`.
+- **macOS Dock drop** — on macOS, files dropped onto the Dock icon fire a Tauri `RunEvent::Opened`. If the frontend isn't ready yet (cold start), paths are buffered in a `Mutex<Vec<String>>` on the Rust side; the frontend calls `take_pending_files` on init to retrieve them.
+
+### Tech stack
+
 | Component | Technology |
 |:---|:---|
 | **Framework** | [Tauri 2](https://tauri.app/) |
@@ -126,6 +151,8 @@ devbox run -- npx tauri build     # release build
 | **Frontend** | Vanilla JS + CSS (zero framework) |
 | **Build** | Vite 8 |
 | **Runtime** | Node.js 24 |
+
+### Architecture
 
 ```
   Frontend (JS)                         Backend (Rust)
@@ -142,6 +169,8 @@ devbox run -- npx tauri build     # release build
                                           │
   Receive results      <──return──      collect hex results
 ```
+
+### Project structure
 
 ```
 Hasher/

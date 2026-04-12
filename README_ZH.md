@@ -119,6 +119,31 @@ devbox run -- npx tauri build     # 构建发布版
 
 ## 技术概览
 
+Hasher 是一个 [Tauri 2](https://tauri.app/) 混合应用——Rust 后端负责所有文件 I/O 和密码学计算，原生 JS 前端负责 UI 渲染。两者通过 Tauri 的 IPC 桥接通信：前端 `invoke()` 调用 Rust 命令，后端 `emit()` 事件回传给前端。
+
+### 哈希计算流程
+
+当文件被拖入（或选择）后，前端为每个文件调用 `compute_hashes` 命令。后端处理流程如下：
+
+1. **打开文件**时附加平台特定的顺序读取提示（Windows 上使用 `FILE_FLAG_SEQUENTIAL_SCAN`，Unix 上使用 `madvise(SEQUENTIAL)`），告知操作系统积极预读并尽早释放页面。
+2. **通过 `memmap2` 内存映射文件**——零用户空间缓冲，操作系统页面缓存直接为哈希函数提供数据。
+3. **为每种选中的算法启动一个 OS 线程**（最多 4 个）。所有线程共享同一个只读 mmap，无论运行多少种算法，文件只映射一次。每个线程仅分配 256 KB 栈空间（哈希状态实际需要不到 2 KB；平台默认的 512 KB–8 MB 会造成浪费）。
+4. **通过单个 `AtomicU64` 计数器追踪进度**。每个线程处理完一个 2 MB 块后累加计数器。调用线程每 50 ms 轮询一次，向前端发送 `hash-progress` 事件更新进度条。
+5. **所有线程完成后返回结果**。十六进制编码使用预计算查找表加速。
+
+空文件走快速路径——直接内联计算已知哈希值，无需启动线程或触发 mmap。
+
+### 前端设计
+
+前端采用零框架的原生 JS + CSS，以保持极小的二进制体积（总计约 2.3 MB）。关键设计：
+
+- **国际化** — 一个扁平的 `messages` 对象包含 `en`/`zh` 键值；通过 `navigator.language` 自动检测系统语言，支持手动切换。
+- **主题** — CSS 变量驱动明暗模式。`<head>` 中的同步 `<script>` 在首次绘制前应用已保存的主题，避免闪烁。切换动画使用 350 ms CSS 过渡。
+- **状态** — 单个 `state` 对象持有文件映射、设置、语言和主题。用户偏好通过 `localStorage` 持久化。
+- **macOS Dock 拖放** — 在 macOS 上，拖放到 Dock 图标的文件触发 Tauri 的 `RunEvent::Opened`。若前端尚未就绪（冷启动），路径会缓存在 Rust 端的 `Mutex<Vec<String>>` 中；前端初始化时调用 `take_pending_files` 取回。
+
+### 技术栈
+
 | 组件 | 技术 |
 |:---|:---|
 | **框架** | [Tauri 2](https://tauri.app/) |
@@ -126,6 +151,8 @@ devbox run -- npx tauri build     # 构建发布版
 | **前端** | 原生 JS + CSS（零框架） |
 | **构建** | Vite 8 |
 | **运行时** | Node.js 24 |
+
+### 架构
 
 ```
   前端 (JS)                              后端 (Rust)
@@ -142,6 +169,8 @@ devbox run -- npx tauri build     # 构建发布版
                                            │
   接收结果             <──return──       收集 hex 结果
 ```
+
+### 项目结构
 
 ```
 Hasher/
