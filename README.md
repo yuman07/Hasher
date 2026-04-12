@@ -39,12 +39,12 @@ Hasher is a desktop application that computes cryptographic file hashes instantl
 - **macOS Dock drop** — drop files on Dock icon to hash (cold start supported)
 
 <p align="center">
-  <img src="Screenshots/1.png" width="49%" />
-  <img src="Screenshots/2.png" width="49%" />
+  <img src="screenshots/1.png" width="49%" />
+  <img src="screenshots/2.png" width="49%" />
 </p>
 <p align="center">
-  <img src="Screenshots/3.png" width="49%" />
-  <img src="Screenshots/4.png" width="49%" />
+  <img src="screenshots/3.png" width="49%" />
+  <img src="screenshots/4.png" width="49%" />
 </p>
 
 ## Install

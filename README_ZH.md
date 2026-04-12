@@ -39,12 +39,12 @@ Hasher 是一款桌面端文件哈希校验工具。将文件拖入窗口即可�
 - **macOS Dock 拖放** — 拖文件到 Dock 图标直接计算（支持冷启动）
 
 <p align="center">
-  <img src="Screenshots/1.png" width="49%" />
-  <img src="Screenshots/2.png" width="49%" />
+  <img src="screenshots/1.png" width="49%" />
+  <img src="screenshots/2.png" width="49%" />
 </p>
 <p align="center">
-  <img src="Screenshots/3.png" width="49%" />
-  <img src="Screenshots/4.png" width="49%" />
+  <img src="screenshots/3.png" width="49%" />
+  <img src="screenshots/4.png" width="49%" />
 </p>
 
 ## 安装
