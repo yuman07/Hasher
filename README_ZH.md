@@ -107,16 +107,23 @@ devbox run -- npx tauri dev       # 开发模式
 devbox run -- npx tauri build     # 构建发布版
 ```
 
-### Windows
+### Windows（10+，x64）
 
-先手动安装以下依赖，然后执行构建命令：
+```powershell
+# 1. 安装 Visual Studio Build Tools（提供 Rust 和 Tauri 所需的 C/C++ 编译器）
+#    从 https://visualstudio.microsoft.com/visual-cpp-build-tools/ 下载
+#    安装时选择「使用 C++ 的桌面开发」工作负载
 
-- [Rust 1.85+](https://rustup.rs/)
-- [Node.js 24+](https://nodejs.org/)
-- [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)（C++ 工作负载）
+# 2. 安装 Rust
+#    从 https://rustup.rs/ 下载并运行安装程序
 
-```bash
+# 3. 安装 Node.js 24+
+#    从 https://nodejs.org/ 下载并运行安装程序
+
+# 4. 安装前端依赖
 npm install
+
+# 5. 运行或构建
 npx tauri dev       # 开发模式
 npx tauri build     # 构建发布版
 ```

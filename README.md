@@ -107,16 +107,23 @@ devbox run -- npx tauri dev       # dev mode
 devbox run -- npx tauri build     # release build
 ```
 
-### Windows
+### Windows (10+, x64)
 
-Install the following manually, then run the build commands:
+```powershell
+# 1. Install Visual Studio Build Tools (provides C/C++ compiler required by Rust and Tauri)
+#    Download from https://visualstudio.microsoft.com/visual-cpp-build-tools/
+#    Select "Desktop development with C++" workload during installation
 
-- [Rust 1.85+](https://rustup.rs/)
-- [Node.js 24+](https://nodejs.org/)
-- [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (C++ workload)
+# 2. Install Rust
+#    Download and run the installer from https://rustup.rs/
 
-```bash
+# 3. Install Node.js 24+
+#    Download and run the installer from https://nodejs.org/
+
+# 4. Install frontend dependencies
 npm install
+
+# 5. Run or build
 npx tauri dev       # dev mode
 npx tauri build     # release build
 ```
