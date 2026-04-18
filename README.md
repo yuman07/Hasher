@@ -32,8 +32,8 @@ Hasher is a desktop application that computes cryptographic file hashes instantl
 - **Drag & drop or click** — drop files into the window or click to open a file picker
 - **Batch processing** — handle multiple files at once with real-time progress bars
 - **Parallel & fast** — one thread per algorithm, memory-mapped I/O, ~2.3 MB binary
-- **Dark / Light mode** — follows system preference, updates live when the OS theme changes
-- **Chinese / English** — auto-detects system locale
+- **Dark / Light mode** — follows system preference and updates live when the OS theme changes
+- **Chinese / English** — auto-detects system locale and updates live when the OS language changes
 - **One-click copy** — copies `SHA-256: abc123...` to clipboard
 - **File type icons** — color-coded by category
 - **Collapse / expand** — per-card and global toggle
@@ -138,10 +138,10 @@ Empty files are fast-pathed — their well-known hashes are computed inline with
 
 The frontend is zero-framework vanilla JS + CSS to keep the binary small (~2.3 MB total). Key design choices:
 
-- **i18n** — a flat `messages` object with `en`/`zh` keys; UI language is chosen from `navigator.language` at launch (no manual override).
+- **i18n** — a flat `messages` object with `en`/`zh` keys; UI language is chosen from `navigator.language` at launch, and a `languagechange` listener re-renders the UI live if the OS locale changes.
 - **Theming** — CSS variables drive light/dark mode. A synchronous `<script>` in `<head>` reads `prefers-color-scheme` before first paint to prevent flash; a `matchMedia` listener then applies OS theme changes live with a 350 ms CSS transition.
 - **Hash verification** — each card has an expected-hash input; the value is normalized (strips `algo:` prefixes and whitespace), length-mapped to MD5/SHA-1/SHA-256/SHA-512, and compared against the already-computed rows. Runs on every keystroke and again once results render, so pasting before the hash finishes still works.
-- **State** — a single `state` object holds the file map, settings, language, and theme. Only algorithm selection and hash case persist to `localStorage`; language and theme are re-derived from the OS every launch.
+- **State** — a single `state` object holds the file map, settings, language, and theme. Only algorithm selection and hash case persist to `localStorage`; language and theme are always derived from the OS — resolved at launch and kept in sync via `languagechange` / `matchMedia` listeners.
 - **macOS Dock drop** — on macOS, files dropped onto the Dock icon fire a Tauri `RunEvent::Opened`. If the frontend isn't ready yet (cold start), paths are buffered in a `Mutex<Vec<String>>` on the Rust side; the frontend calls `take_pending_files` on init to retrieve them.
 
 ### Tech stack
@@ -198,7 +198,7 @@ graph LR
 - **Main data flow** — user drops files into the Drop Zone, which `invoke()`s the Rust backend. The backend opens the file with OS-level sequential hints, memory-maps it once, and fans out to parallel hash threads. Progress flows back to the UI via 50 ms event polling; final results are returned as `HashResult[]`
 - **Shared mmap design** — all hash threads read from the same read-only memory mapping. This means a 1 GB file is mapped once (not 4 times), and the OS page cache serves every algorithm without redundant I/O
 - **Dock drop buffer** — the `PendingFiles` mutex handles the race condition where macOS delivers `RunEvent::Opened` before the frontend webview is ready. Paths are buffered in Rust and drained by the frontend on init via `take_pending_files()`
-- **Preference persistence** — algorithm selection and hash case are stored in `localStorage` and restored on every launch; theme and language re-derive from the OS on each launch, decoupled from the Rust backend
+- **Preference persistence** — algorithm selection and hash case are stored in `localStorage` and restored on every launch; theme and language are driven by the OS — resolved at launch and updated live via `prefers-color-scheme` / `languagechange` listeners, decoupled from the Rust backend
 
 ### Project structure
 

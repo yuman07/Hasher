@@ -103,6 +103,9 @@ function applyTranslations() {
   document.querySelectorAll("[data-i18n-title]").forEach((el) => {
     el.title = t(el.dataset.i18nTitle);
   });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
 }
 
 let _themeSwitchTimer = 0;
@@ -246,6 +249,12 @@ async function init() {
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
     state.theme = e.matches ? "dark" : "light";
     applyTheme(true);
+  });
+
+  window.addEventListener("languagechange", () => {
+    state.lang = systemLanguage();
+    applyTranslations();
+    dom.fileList.querySelectorAll(".file-card").forEach(verifyCard);
   });
 
   const appWindow = getCurrentWebviewWindow();
@@ -457,6 +466,7 @@ function createFileCard(fileId, meta, filePath) {
         <div class="hash-results"></div>
         <div class="verify-wrap">
           <input class="verify-input" type="text" spellcheck="false" autocomplete="off"
+                 data-i18n-placeholder="verifyPlaceholder"
                  placeholder="${t("verifyPlaceholder")}" />
           <div class="verify-status"></div>
         </div>
