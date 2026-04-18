@@ -95,8 +95,8 @@ Download `Hasher_Win10_x64_<version>.exe` from [Releases](https://github.com/yum
 
 **Prerequisites:**
 
-- macOS 15.6 Sequoia or later (Apple Silicon)
-- Xcode Command Line Tools 26.0 or later
+- macOS 26.2 Tahoe or later (Apple Silicon)
+- Xcode Command Line Tools 26.4.1 or later
 
 ```bash
 # 1. Install Xcode Command Line Tools (provides C/C++ compiler required by Rust and Tauri)
