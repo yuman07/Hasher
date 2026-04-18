@@ -160,7 +160,6 @@ header h1 {
 #case-btn,
 #lang-btn,
 #collapse-all-btn,
-#theme-btn,
 #settings-btn {
   background: none;
   border: none;
@@ -176,7 +175,6 @@ header h1 {
 #case-btn:hover,
 #lang-btn:hover,
 #collapse-all-btn:hover:not(:disabled),
-#theme-btn:hover,
 #settings-btn:hover {
   background: var(--accent-light);
   color: var(--accent);
@@ -201,12 +199,6 @@ header h1 {
 #collapse-all-btn .icon-expand { display: none; }
 #collapse-all-btn.all-collapsed .icon-collapse { display: none; }
 #collapse-all-btn.all-collapsed .icon-expand { display: block; }
-
-/* sun/moon toggle: light mode → show moon; dark mode → show sun */
-[data-theme="light"] .icon-sun { display: none; }
-[data-theme="light"] .icon-moon { display: block; }
-[data-theme="dark"] .icon-sun { display: block; }
-[data-theme="dark"] .icon-moon { display: none; }
 
 /* ── Main ── */
 main {

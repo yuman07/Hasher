@@ -17,7 +17,6 @@ const messages = {
     remove: "Remove",
     copyHash: "Copy hash",
     progressDone: "Done",
-    toggleTheme: "Toggle theme",
     skippedDirs: "Folders cannot be hashed and were skipped: ",
   },
   zh: {
@@ -30,7 +29,6 @@ const messages = {
     remove: "\u79fb\u9664",
     copyHash: "\u590d\u5236\u54c8\u5e0c\u503c",
     progressDone: "\u5b8c\u6210",
-    toggleTheme: "\u5207\u6362\u4e3b\u9898",
     skippedDirs: "\u6587\u4ef6\u5939\u65e0\u6cd5\u8ba1\u7b97\u54c8\u5e0c\uff0c\u5df2\u8df3\u8fc7\uff1a",
   },
 };
@@ -40,7 +38,7 @@ const state = {
   files: new Map(),
   settings: loadSettings(),
   lang: loadLanguage(),
-  theme: loadTheme(),
+  theme: systemTheme(),
   upperCase: localStorage.getItem("hasher-case") === "upper",
 };
 
@@ -63,9 +61,7 @@ function loadLanguage() {
   return navigator.language.startsWith("zh") ? "zh" : "en";
 }
 
-function loadTheme() {
-  const saved = localStorage.getItem("hasher-theme");
-  if (saved === "light" || saved === "dark") return saved;
+function systemTheme() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
@@ -86,7 +82,6 @@ function cacheDom() {
     collapseAllBtn: $("collapse-all-btn"),
     caseBtn: $("case-btn"),
     langBtn: $("lang-btn"),
-    themeBtn: $("theme-btn"),
     settingsBtn: $("settings-btn"),
     settingsOverlay: $("settings-overlay"),
     settingsClose: $("settings-close"),
@@ -243,10 +238,8 @@ async function init() {
   });
 
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-    if (!localStorage.getItem("hasher-theme")) {
-      state.theme = e.matches ? "dark" : "light";
-      applyTheme(true);
-    }
+    state.theme = e.matches ? "dark" : "light";
+    applyTheme(true);
   });
 
   const appWindow = getCurrentWebviewWindow();
@@ -286,12 +279,6 @@ async function init() {
     state.lang = state.lang === "en" ? "zh" : "en";
     localStorage.setItem("hasher-lang", state.lang);
     applyTranslations();
-  });
-
-  dom.themeBtn.addEventListener("click", () => {
-    state.theme = state.theme === "light" ? "dark" : "light";
-    localStorage.setItem("hasher-theme", state.theme);
-    applyTheme(true);
   });
 
   dom.settingsBtn.addEventListener("click", () => {
