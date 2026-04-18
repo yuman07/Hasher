@@ -18,6 +18,11 @@ const messages = {
     copyHash: "Copy hash",
     progressDone: "Done",
     skippedDirs: "Folders cannot be hashed and were skipped: ",
+    verifyPlaceholder: "Paste expected hash to verify",
+    verifyMatch: "Match — ",
+    verifyNoMatch: "No match for ",
+    verifyInvalid: "Invalid hash format",
+    verifyNotComputed: " not enabled in settings",
   },
   zh: {
     dropText: "\u62d6\u653e\u6216\u70b9\u51fb\u9009\u62e9\u6587\u4ef6",
@@ -30,6 +35,11 @@ const messages = {
     copyHash: "\u590d\u5236\u54c8\u5e0c\u503c",
     progressDone: "\u5b8c\u6210",
     skippedDirs: "\u6587\u4ef6\u5939\u65e0\u6cd5\u8ba1\u7b97\u54c8\u5e0c\uff0c\u5df2\u8df3\u8fc7\uff1a",
+    verifyPlaceholder: "\u7c98\u8d34\u671f\u671b\u54c8\u5e0c\u4ee5\u6821\u9a8c",
+    verifyMatch: "\u5339\u914d \u2014 ",
+    verifyNoMatch: "\u672a\u5339\u914d \u2014 ",
+    verifyInvalid: "\u54c8\u5e0c\u683c\u5f0f\u65e0\u6548",
+    verifyNotComputed: " \u672a\u5728\u8bbe\u7f6e\u4e2d\u5f00\u542f",
   },
 };
 
@@ -355,6 +365,66 @@ async function handleFiles(paths) {
   updateFileListState();
 }
 
+// ── hash verification ────────────────────────────────────────────────
+const HASH_BY_LEN = { 32: "MD5", 40: "SHA-1", 64: "SHA-256", 128: "SHA-512" };
+
+function normalizeExpectedHash(raw) {
+  return raw
+    .trim()
+    .replace(/^[A-Za-z0-9-]+\s*[:=]\s*/, "")
+    .replace(/\s+/g, "")
+    .toLowerCase();
+}
+
+function verifyCard(card) {
+  const input = card.querySelector(".verify-input");
+  const status = card.querySelector(".verify-status");
+  const rows = card.querySelectorAll(".hash-row");
+
+  rows.forEach((r) => r.classList.remove("matched"));
+  input.classList.remove("invalid");
+  status.className = "verify-status";
+  status.textContent = "";
+
+  const raw = input.value;
+  if (!raw.trim()) return;
+
+  const value = normalizeExpectedHash(raw);
+  const algo = HASH_BY_LEN[value.length];
+  if (!algo || !/^[0-9a-f]+$/.test(value)) {
+    input.classList.add("invalid");
+    status.classList.add("error");
+    status.textContent = t("verifyInvalid");
+    return;
+  }
+
+  if (rows.length === 0) return;
+
+  let match = null;
+  for (const r of rows) {
+    if (r.querySelector(".hash-label")?.textContent?.trim() === algo) {
+      match = r;
+      break;
+    }
+  }
+
+  if (!match) {
+    status.classList.add("warn");
+    status.textContent = algo + t("verifyNotComputed");
+    return;
+  }
+
+  const computed = match.querySelector(".hash-value")?.textContent?.trim().toLowerCase();
+  if (computed === value) {
+    match.classList.add("matched");
+    status.classList.add("ok");
+    status.textContent = t("verifyMatch") + algo;
+  } else {
+    status.classList.add("error");
+    status.textContent = t("verifyNoMatch") + algo;
+  }
+}
+
 function createFileCard(fileId, meta, filePath) {
   const card = document.createElement("div");
   card.className = "file-card";
@@ -385,6 +455,11 @@ function createFileCard(fileId, meta, filePath) {
           <span class="progress-text">0%</span>
         </div>
         <div class="hash-results"></div>
+        <div class="verify-wrap">
+          <input class="verify-input" type="text" spellcheck="false" autocomplete="off"
+                 placeholder="${t("verifyPlaceholder")}" />
+          <div class="verify-status"></div>
+        </div>
       </div>
     </div>
   `;
@@ -400,6 +475,8 @@ function createFileCard(fileId, meta, filePath) {
     card.addEventListener("animationend", () => card.remove());
     updateFileListState();
   });
+
+  card.querySelector(".verify-input").addEventListener("input", () => verifyCard(card));
 
   dom.fileList.appendChild(card);
   requestAnimationFrame(() => card.classList.add("visible"));
@@ -455,6 +532,8 @@ async function computeHashes(fileId, filePath, algorithms) {
         setTimeout(() => btn.classList.remove("copied"), 1500);
       });
     });
+
+    verifyCard(card);
   } catch (error) {
     card.querySelector(".progress-container").style.display = "none";
     card.querySelector(".hash-results").innerHTML = `
