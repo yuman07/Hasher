@@ -1,83 +1,154 @@
-name: Build Release
+name: Release
 
 on:
-  release:
-    types: [created]
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Release tag (e.g. v1.0.0)'
+      version:
+        description: 'Version (semver, no v prefix, e.g. 1.0.0 or 1.0.0-beta.1)'
         required: true
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ inputs.version }}
+  cancel-in-progress: false
+
 jobs:
-  build-macos:
-    runs-on: macos-latest
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tag: ${{ steps.derive.outputs.tag }}
+      prerelease: ${{ steps.derive.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-
-      - name: Setup Rust (aarch64)
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-apple-darwin
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build Tauri (macOS ARM)
-        run: npx tauri build --target aarch64-apple-darwin
-
-      - name: Rename artifact
-        run: |
-          VERSION=${TAG#v}
-          APP_NAME=$(python3 -c "import json; c=json.load(open('src-tauri/tauri.conf.json')); print(c['productName'])")
-          MIN_MACOS=$(python3 -c "import json; c=json.load(open('src-tauri/tauri.conf.json')); print(c['bundle']['macOS']['minimumSystemVersion'].split('.')[0])")
-          cp src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg "${APP_NAME}_macOS${MIN_MACOS}_arm64_${VERSION}.dmg"
+      - name: Validate version and derive tag
+        id: derive
         env:
-          TAG: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ ! "$INPUT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Invalid version '$INPUT_VERSION' — expected semver like 1.2.3 or 1.2.3-beta.1 (no 'v' prefix)"
+            exit 1
+          fi
+          echo "tag=v$INPUT_VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$INPUT_VERSION" == *-* ]]; then
+            echo "prerelease=--prerelease" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Upload to release
+  create-release:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Create draft release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} *_macOS*_arm64_*.dmg --clobber
+          TAG: ${{ needs.validate.outputs.tag }}
+          PRERELEASE_FLAG: ${{ needs.validate.outputs.prerelease }}
+        run: |
+          APP_NAME=$(python3 -c "import json; c=json.load(open('src-tauri/tauri.conf.json')); print(c['productName'])")
+          gh release create "$TAG" \
+            --draft \
+            --target "$GITHUB_SHA" \
+            --title "$APP_NAME $TAG" \
+            $PRERELEASE_FLAG
 
-  build-windows:
-    runs-on: windows-latest
+  build:
+    needs: [validate, create-release]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: macos
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            platform: windows
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 24
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Setup Rust (macOS)
+        if: matrix.platform == 'macos'
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - name: Setup Rust (Windows)
+        if: matrix.platform == 'windows'
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+        with:
+          toolchain: stable
 
       - name: Install dependencies
         run: npm install
 
+      - name: Build Tauri (macOS)
+        if: matrix.platform == 'macos'
+        run: npx tauri build --target ${{ matrix.target }}
+
       - name: Build Tauri (Windows)
+        if: matrix.platform == 'windows'
         run: npx tauri build --no-bundle
 
-      - name: Rename artifact
+      - name: Rename and upload artifact (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.validate.outputs.tag }}
+          VERSION: ${{ inputs.version }}
+          TARGET: ${{ matrix.target }}
         run: |
-          $VERSION = "${{ github.event.inputs.tag || github.event.release.tag_name }}".TrimStart("v")
+          APP_NAME=$(python3 -c "import json; c=json.load(open('src-tauri/tauri.conf.json')); print(c['productName'])")
+          MIN_MACOS=$(python3 -c "import json; c=json.load(open('src-tauri/tauri.conf.json')); v=c['bundle']['macOS']['minimumSystemVersion']; print(v[:-2] if v.endswith('.0') else v)")
+          cp "src-tauri/target/${TARGET}/release/bundle/dmg/"*.dmg "${APP_NAME}_macOS${MIN_MACOS}_arm64_${VERSION}.dmg"
+          gh release upload "$TAG" "${APP_NAME}_macOS${MIN_MACOS}_arm64_${VERSION}.dmg" --clobber
+
+      - name: Rename and upload artifact (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.validate.outputs.tag }}
+          VERSION: ${{ inputs.version }}
+        run: |
           $CONF = Get-Content src-tauri\tauri.conf.json | ConvertFrom-Json
           $APP_NAME = $CONF.productName
           $META = Get-Content build-meta.json | ConvertFrom-Json
           $MIN_WIN = $META.windows.minVersion
           $ARCH = $META.windows.arch
-          copy src-tauri\target\release\$($APP_NAME.ToLower()).exe "${APP_NAME}_${MIN_WIN}_${ARCH}_${VERSION}.exe"
+          $OUT = "${APP_NAME}_${MIN_WIN}_${ARCH}_${env:VERSION}.exe"
+          copy "src-tauri\target\release\$($APP_NAME.ToLower()).exe" $OUT
+          gh release upload "$env:TAG" $OUT --clobber
 
-      - name: Upload to release
+  publish:
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.inputs.tag || github.event.release.tag_name }} *_Win*_*_*.exe --clobber
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.validate.outputs.tag }}
+        run: gh release edit "$TAG" --draft=false
