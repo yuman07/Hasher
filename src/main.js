@@ -37,7 +37,7 @@ const messages = {
 const state = {
   files: new Map(),
   settings: loadSettings(),
-  lang: loadLanguage(),
+  lang: systemLanguage(),
   theme: systemTheme(),
   upperCase: localStorage.getItem("hasher-case") === "upper",
 };
@@ -55,9 +55,7 @@ function saveSettings() {
   localStorage.setItem("hasher-settings", JSON.stringify(state.settings));
 }
 
-function loadLanguage() {
-  const saved = localStorage.getItem("hasher-lang");
-  if (saved === "en" || saved === "zh") return saved;
+function systemLanguage() {
   return navigator.language.startsWith("zh") ? "zh" : "en";
 }
 
@@ -81,7 +79,6 @@ function cacheDom() {
     clearBtn: $("clear-btn"),
     collapseAllBtn: $("collapse-all-btn"),
     caseBtn: $("case-btn"),
-    langBtn: $("lang-btn"),
     settingsBtn: $("settings-btn"),
     settingsOverlay: $("settings-overlay"),
     settingsClose: $("settings-close"),
@@ -96,7 +93,6 @@ function applyTranslations() {
   document.querySelectorAll("[data-i18n-title]").forEach((el) => {
     el.title = t(el.dataset.i18nTitle);
   });
-  dom.langBtn.classList.toggle("lang-zh", state.lang === "zh");
 }
 
 let _themeSwitchTimer = 0;
@@ -273,12 +269,6 @@ async function init() {
     state.upperCase = !state.upperCase;
     localStorage.setItem("hasher-case", state.upperCase ? "upper" : "lower");
     applyHashCase();
-  });
-
-  dom.langBtn.addEventListener("click", () => {
-    state.lang = state.lang === "en" ? "zh" : "en";
-    localStorage.setItem("hasher-lang", state.lang);
-    applyTranslations();
   });
 
   dom.settingsBtn.addEventListener("click", () => {

@@ -158,7 +158,6 @@ header h1 {
 
 #clear-btn,
 #case-btn,
-#lang-btn,
 #collapse-all-btn,
 #settings-btn {
   background: none;
@@ -173,7 +172,6 @@ header h1 {
   justify-content: center;
 }
 #case-btn:hover,
-#lang-btn:hover,
 #collapse-all-btn:hover:not(:disabled),
 #settings-btn:hover {
   background: var(--accent-light);
@@ -189,11 +187,6 @@ header h1 {
 #case-btn .icon-upper { display: none; }
 #case-btn.upper .icon-lower { display: none; }
 #case-btn.upper .icon-upper { display: block; }
-
-/* lang icon toggle: default (en) shows "En", .lang-zh shows "中" */
-#lang-btn .icon-lang-zh { display: none; }
-#lang-btn.lang-zh .icon-lang-en { display: none; }
-#lang-btn.lang-zh .icon-lang-zh { display: block; }
 
 /* collapse-all icon toggle */
 #collapse-all-btn .icon-expand { display: none; }
