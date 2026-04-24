@@ -96,6 +96,8 @@ Download `Hasher_Win10_x64_<version>.exe` from [Releases](https://github.com/yum
 
 ### Recommended prerequisites
 
+Rust and Node.js aren't listed — Devbox provisions them automatically on first build.
+
 | Dependency | Recommended version |
 |:---|:---|
 | macOS | 26.4.1 Tahoe, Apple Silicon |

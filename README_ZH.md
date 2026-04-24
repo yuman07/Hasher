@@ -96,6 +96,8 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 ### 推荐前置要求
 
+Rust 和 Node.js 不在表里——Devbox 会在首次构建时自动装好。
+
 | 依赖 | 推荐版本 |
 |:---|:---|
 | macOS | 26.4.1 Tahoe，Apple Silicon |
