@@ -106,7 +106,7 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 <sub>以上是作者当前的开发环境版本，已在 dev 与发布构建中验证可用。更低版本或许也能运行，但未经测试，对其效果不做保证。</sub>
 
-### 如何确认满足前置要求
+### 前置环境检查与配置
 
 对照上表，逐项检查本机是否满足；未满足时按给出的步骤安装或升级。
 

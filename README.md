@@ -106,7 +106,7 @@ Download `Hasher_Win10_x64_<version>.exe` from [Releases](https://github.com/yum
 
 <sub>These are the author's current dev-environment versions, verified to work for both dev and release builds. Lower versions may also work but are untested and not guaranteed.</sub>
 
-### Making sure you meet the prerequisites
+### Checking and installing prerequisites
 
 For each item above, check whether your machine already satisfies it; if not, follow the install / upgrade steps.
 
