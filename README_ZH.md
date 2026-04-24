@@ -96,8 +96,6 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 ### 推荐前置要求
 
-只列出需要用户自己装的工具。Rust 和 Node.js 由 Devbox 管理，首次执行下面的构建命令时会自动到位，不需要用户操心。
-
 | 依赖 | 推荐版本 |
 |:---|:---|
 | macOS | 26.4.1 Tahoe，Apple Silicon |
