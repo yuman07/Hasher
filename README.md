@@ -102,8 +102,6 @@ Download `Hasher_Win10_x64_<version>.exe` from [Releases](https://github.com/yum
 | Xcode Command Line Tools | 26.4.1 |
 | Devbox | 0.17.1 |
 
-<sub>Rust and Node.js aren't listed — Devbox provisions them automatically on first build.</sub>
-
 <sub>These are the author's current dev-environment versions, verified to work for both dev and release builds. Lower versions may also work but are untested and not guaranteed.</sub>
 
 ### Checking and installing prerequisites
