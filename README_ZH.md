@@ -102,9 +102,9 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 | Xcode Command Line Tools | 26.4.1 |
 | Devbox | 0.17.1 |
 
-<sub>以上是作者当前的开发环境版本，已在 dev 与发布构建中验证可用。更低版本或许也能运行，但未经测试，对其效果不做保证。</sub>
-
 <sub>Rust 和 Node.js 不在表里——Devbox 会在首次构建时自动装好。</sub>
+
+<sub>以上是作者当前的开发环境版本，已在 dev 与发布构建中验证可用。更低版本或许也能运行，但未经测试，对其效果不做保证。</sub>
 
 ### 如何确认满足前置要求
 
