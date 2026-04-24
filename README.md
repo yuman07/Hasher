@@ -94,32 +94,48 @@ Download `Hasher_Win10_x64_<version>.exe` from [Releases](https://github.com/yum
 
 > Only macOS build steps are provided.
 
-**Prerequisites (recommended):**
+### Recommended prerequisites
 
-Only tools you must install yourself are listed. Rust and Node.js are managed by Devbox and are installed automatically during the build steps below — you don't need to set them up.
+Only tools you must install yourself are listed. Rust and Node.js are managed by Devbox and are materialized automatically the first time the build commands below are run — you don't need to set them up.
 
-| Tool | Version |
+| Dependency | Recommended version |
 |:---|:---|
 | macOS | 26.4.1 Tahoe, Apple Silicon |
 | Xcode Command Line Tools | 26.4.1 |
+| Devbox | 0.17.1 |
 
 <sub>These are the author's current dev-environment versions, verified to work for both dev and release builds. Lower versions may also work but are untested and not guaranteed.</sub>
 
+### Making sure you meet the prerequisites
+
+For each item above, check whether your machine already satisfies it; if not, follow the install / upgrade steps.
+
+- **macOS**
+  - *Check*: run `sw_vers` in Terminal, or open **System Settings → General → About**.
+  - *Upgrade*: **System Settings → General → Software Update** (recommended). Apple Silicon is mandatory — the app does not run on Intel Macs, so Intel hardware cannot satisfy this prerequisite at all.
+- **Xcode Command Line Tools**
+  - *Check*: `xcode-select -p` prints the install path if present; `pkgutil --pkg-info=com.apple.pkg.CLTools_Executables` prints the installed version.
+  - *First-time install*: `xcode-select --install` (opens a GUI dialog that downloads and installs from Apple).
+  - *Upgrade*: **System Settings → General → Software Update** (recommended) — CLT updates ship alongside macOS updates there.
+- **Devbox**
+  - *Check*: `devbox version`.
+  - *First-time install*: `curl -fsSL https://get.jetify.com/devbox | bash`.
+  - *Upgrade*: `devbox version update`.
+
+### Build steps
+
+Assumes all prerequisites above are already satisfied.
+
 ```bash
-# 1. Install Xcode Command Line Tools (provides C/C++ compiler required by Rust and Tauri)
-xcode-select --install
-
-# 2. Install Devbox (manages Rust & Node.js automatically)
-curl -fsSL https://get.jetify.com/devbox | bash
-
-# 3. Clone the repository and enter the project directory
+# 1. Clone the repository and enter the project directory
 git clone https://github.com/yuman07/Hasher.git
 cd Hasher
 
-# 4. Install frontend dependencies
+# 2. Install frontend dependencies
+#    (Devbox also materializes Rust + Node.js on first invocation — no manual setup needed)
 devbox run -- npm install
 
-# 5. Run in dev mode or build for release
+# 3. Run in dev mode or build for release
 devbox run -- npx tauri dev       # dev mode
 devbox run -- npx tauri build     # release build
 ```

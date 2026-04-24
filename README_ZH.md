@@ -94,32 +94,48 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 > 以下仅提供 macOS 构建步骤。
 
-**前置要求（推荐）：**
+### 推荐前置要求
 
-只列出需要用户自己装的工具。Rust 和 Node.js 由 Devbox 管理，在下面的构建步骤中会自动安装，不需要用户操心。
+只列出需要用户自己装的工具。Rust 和 Node.js 由 Devbox 管理，首次执行下面的构建命令时会自动到位，不需要用户操心。
 
-| 工具 | 版本 |
+| 依赖 | 推荐版本 |
 |:---|:---|
 | macOS | 26.4.1 Tahoe，Apple Silicon |
 | Xcode Command Line Tools | 26.4.1 |
+| Devbox | 0.17.1 |
 
 <sub>以上是作者当前的开发环境版本，已在 dev 与发布构建中验证可用。更低版本或许也能运行，但未经测试，对其效果不做保证。</sub>
 
+### 如何确认满足前置要求
+
+对照上表，逐项检查本机是否满足；未满足时按给出的步骤安装或升级。
+
+- **macOS**
+  - *检查*：终端执行 `sw_vers`，或打开**系统设置 → 通用 → 关于本机**。
+  - *升级*：**系统设置 → 通用 → 软件更新**（推荐）。必须 Apple Silicon 机型——本应用不支持 Intel Mac，Intel 硬件无法满足此前置条件。
+- **Xcode Command Line Tools**
+  - *检查*：`xcode-select -p` 打印安装路径（存在即已装）；`pkgutil --pkg-info=com.apple.pkg.CLTools_Executables` 打印已装版本号。
+  - *首次安装*：`xcode-select --install`（会弹出 GUI 对话框，从 Apple 服务器下载安装）。
+  - *升级*：**系统设置 → 通用 → 软件更新**（推荐），CLT 的更新会跟随 macOS 更新一起出现。
+- **Devbox**
+  - *检查*：`devbox version`。
+  - *首次安装*：`curl -fsSL https://get.jetify.com/devbox | bash`。
+  - *升级*：`devbox version update`。
+
+### 构建步骤
+
+假定上述前置都已满足。
+
 ```bash
-# 1. 安装 Xcode Command Line Tools（提供 Rust 和 Tauri 所需的 C/C++ 编译器）
-xcode-select --install
-
-# 2. 安装 Devbox（自动管理 Rust 和 Node.js）
-curl -fsSL https://get.jetify.com/devbox | bash
-
-# 3. 克隆仓库并进入项目目录
+# 1. 克隆仓库并进入项目目录
 git clone https://github.com/yuman07/Hasher.git
 cd Hasher
 
-# 4. 安装前端依赖
+# 2. 安装前端依赖
+#    （Devbox 首次执行会自动拉取 Rust + Node.js，无需手动处理）
 devbox run -- npm install
 
-# 5. 运行开发模式或构建发布版
+# 3. 运行开发模式或构建发布版
 devbox run -- npx tauri dev       # 开发模式
 devbox run -- npx tauri build     # 构建发布版
 ```
