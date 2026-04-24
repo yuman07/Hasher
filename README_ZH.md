@@ -94,23 +94,16 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 > 以下仅提供 macOS 构建步骤。
 
-**前置要求——两套版本：**
+**前置要求（推荐）：**
 
 只列出需要用户自己装的工具。Rust 和 Node.js 由 Devbox 管理，在下面的构建步骤中会自动安装，不需要用户操心。
 
-| 工具 | 理论最低（无保证） | 推荐（作者本机已验证） |
-|:---|:---|:---|
-| macOS | 15.0 Sequoia，Apple Silicon | 26.4.1 Tahoe，Apple Silicon |
-| Xcode Command Line Tools | 16.0（随附 macOS 15 SDK） | 26.4.1 |
+| 工具 | 版本 |
+|:---|:---|
+| macOS | 26.4.1 Tahoe，Apple Silicon |
+| Xcode Command Line Tools | 26.4.1 |
 
-**理论最低**——从项目源码与配置推导：
-
-- **macOS 15.0**——`src-tauri/tauri.conf.json` 的 `minimumSystemVersion: "15.0"` 是部署目标，构建机不能低于部署目标。
-- **Xcode CLT 16.0**——首个随附 macOS 15 SDK 的 CLT 版本（见 https://developer.apple.com/xcode/system-requirements/ ）。
-
-这些下限**未经逐一回归测试**，使用最低版本不保证能成功构建或运行。
-
-**推荐**——作者目前用于 dev 和发布构建的组合，已端到端验证可用。若想零摩擦搭环境，按这套版本装即可。
+<sub>以上是作者当前的开发环境版本，已在 dev 与发布构建中验证可用。更低版本或许也能运行，但未经测试，对其效果不做保证。</sub>
 
 ```bash
 # 1. 安装 Xcode Command Line Tools（提供 Rust 和 Tauri 所需的 C/C++ 编译器）
