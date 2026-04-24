@@ -96,19 +96,17 @@ curl -fsSL https://raw.githubusercontent.com/yuman07/Hasher/main/install.sh | ba
 
 **前置要求——两套版本：**
 
+只列出需要用户自己装的工具。Rust 和 Node.js 由 Devbox 管理，在下面的构建步骤中会自动安装，不需要用户操心。
+
 | 工具 | 理论最低（无保证） | 推荐（作者本机已验证） |
 |:---|:---|:---|
 | macOS | 15.0 Sequoia，Apple Silicon | 26.4.1 Tahoe，Apple Silicon |
 | Xcode Command Line Tools | 16.0（随附 macOS 15 SDK） | 26.4.1 |
-| Rust | 1.85 | 1.95.0 |
-| Node.js | 20.19 或 22.12 | 24.14.0 |
 
 **理论最低**——从项目源码与配置推导：
 
 - **macOS 15.0**——`src-tauri/tauri.conf.json` 的 `minimumSystemVersion: "15.0"` 是部署目标，构建机不能低于部署目标。
 - **Xcode CLT 16.0**——首个随附 macOS 15 SDK 的 CLT 版本（见 https://developer.apple.com/xcode/system-requirements/ ）。
-- **Rust 1.85**——`src-tauri/Cargo.toml` 的 `edition = "2024"` 要求。
-- **Node.js 20.19 / 22.12**——Vite 8 在 `package-lock.json` 里声明的 `engines` 约束。
 
 这些下限**未经逐一回归测试**，使用最低版本不保证能成功构建或运行。
 

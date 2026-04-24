@@ -96,19 +96,17 @@ Download `Hasher_Win10_x64_<version>.exe` from [Releases](https://github.com/yum
 
 **Prerequisites — two tiers:**
 
+Only tools you must install yourself are listed. Rust and Node.js are managed by Devbox and are installed automatically during the build steps below — you don't need to set them up.
+
 | Tool | Theoretical minimum (no guarantee) | Recommended (verified on author's machine) |
 |:---|:---|:---|
 | macOS | 15.0 Sequoia, Apple Silicon | 26.4.1 Tahoe, Apple Silicon |
 | Xcode Command Line Tools | 16.0 (ships macOS 15 SDK) | 26.4.1 |
-| Rust | 1.85 | 1.95.0 |
-| Node.js | 20.19 or 22.12 | 24.14.0 |
 
 **Theoretical minimum** — derived from the repo's source and config:
 
 - **macOS 15.0** — `src-tauri/tauri.conf.json` pins `minimumSystemVersion: "15.0"` as the deployment target; the build host cannot be older than the deployment target.
 - **Xcode CLT 16.0** — first CLT release that ships the macOS 15 SDK (see https://developer.apple.com/xcode/system-requirements/).
-- **Rust 1.85** — required by `edition = "2024"` in `src-tauri/Cargo.toml`.
-- **Node.js 20.19 / 22.12** — `engines` constraint declared by Vite 8 in `package-lock.json`.
 
 These bounds have **not been regression-tested**; using the minimum versions is not guaranteed to build or run successfully.
 
